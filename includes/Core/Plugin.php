@@ -70,6 +70,9 @@ class PCG_Core_Plugin {
 		$this->loader->add_action( 'admin_init', $settings, 'register_settings' );
 
 		// Guards and notices will be wired here in next steps.
+        // Menu Guard.
+        $menu_guard = new PCG_Admin_Menu_Guard();
+        $menu_guard->register( $this->loader );
 	}
 
 	/**
