@@ -73,6 +73,19 @@ class PCG_Core_Plugin {
         // Menu Guard.
         $menu_guard = new PCG_Admin_Menu_Guard();
         $menu_guard->register( $this->loader );
+
+		// Theme Guard.
+		$theme_guard = new PCG_Admin_Theme_Guard();
+		// $theme_guard->register( $this->loader );
+
+		// Plugin Guard.
+		$plugin_guard = new PCG_Admin_Plugin_Guard();
+		// $plugin_guard->register( $this->loader );
+
+		// Content Guard.
+		$content_guard = new PCG_Admin_Content_Guard();
+		$content_guard->register( $this->loader );
+
 	}
 
 	/**
