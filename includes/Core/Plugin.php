@@ -39,6 +39,8 @@ class PCG_Core_Plugin {
 		require_once PCG_PLUGIN_PATH . 'includes/Admin/Plugin_Guard.php';
 		require_once PCG_PLUGIN_PATH . 'includes/Admin/Content_Guard.php';
 		require_once PCG_PLUGIN_PATH . 'includes/Admin/Notices.php';
+		require_once PCG_PLUGIN_PATH . 'includes/Admin/Ajax.php';
+		require_once PCG_PLUGIN_PATH . 'includes/Admin/Assets.php';
 
 		require_once PCG_PLUGIN_PATH . 'includes/Utils/Capabilities.php';
 		require_once PCG_PLUGIN_PATH . 'includes/Utils/Helpers.php';
@@ -89,6 +91,15 @@ class PCG_Core_Plugin {
 		// Admin Notices.
 		$notices = new PCG_Admin_Notices();
 		$notices->register( $this->loader );
+
+		// AJAX Handlers.
+		$ajax = new PCG_Admin_Ajax();
+		$ajax->register( $this->loader );
+
+		// Admin Assets.
+		$assets = new PCG_Admin_Assets();
+		$assets->register( $this->loader );
+
 
 	}
 

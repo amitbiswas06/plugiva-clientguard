@@ -94,6 +94,14 @@ class PCG_Admin_Settings {
 			)
 		);
 
+		add_settings_field(
+			'protected_content',
+			esc_html__( 'Protected Content', 'plugiva-clientguard' ),
+			array( $this, 'render_protected_content' ),
+			'plugiva-clientguard',
+			'pcg_section_content'
+		);
+
 
 	}
 
@@ -138,9 +146,11 @@ class PCG_Admin_Settings {
 
 		$output['allow_plugin_toggle'] = ! empty( $input['allow_plugin_toggle'] );
 
-		$output['protected_content'] = isset( $input['protected_content'] ) && is_array( $input['protected_content'] )
-			? array_map( 'absint', $input['protected_content'] )
-			: array();
+		if ( isset( $input['protected_content'] ) && is_array( $input['protected_content'] ) ) {
+			$output['protected_content'] = array_map( 'absint', $input['protected_content'] );
+		} else {
+			$output['protected_content'] = array();
+		}
 
 		$output['admin_notice_text'] = isset( $input['admin_notice_text'] )
 			? sanitize_text_field( $input['admin_notice_text'] )
@@ -183,6 +193,66 @@ class PCG_Admin_Settings {
 		<?php endif; ?>
 		<?php
 	}
+
+	public function render_protected_content() {
+
+		$settings  = get_option( self::OPTION_NAME );
+		$protected = ! empty( $settings['protected_content'] )
+			? array_map( 'absint', (array) $settings['protected_content'] )
+			: array();
+
+		?>
+		<div id="pcg-content-protection">
+
+			<div style="margin-bottom:10px;">
+				<input type="text"
+					id="pcg-page-search"
+					class="regular-text"
+					placeholder="<?php esc_attr_e( 'Search pages by title…', 'plugiva-clientguard' ); ?>" />
+				<button type="button"
+						class="button button-primary"
+						id="pcg-page-search-btn">
+					<?php esc_html_e( 'Search', 'plugiva-clientguard' ); ?>
+				</button>
+			</div>
+
+			<div id="pcg-search-results" style="margin-bottom:15px;"></div>
+
+			<strong><?php esc_html_e( 'Protected Pages', 'plugiva-clientguard' ); ?></strong>
+
+			<ul id="pcg-protected-list">
+				<?php if ( empty( $protected ) ) : ?>
+					<li class="description">
+						<?php esc_html_e( 'No pages are currently protected.', 'plugiva-clientguard' ); ?>
+					</li>
+				<?php else : ?>
+					<?php foreach ( $protected as $post_id ) : ?>
+						<li data-id="<?php echo esc_attr( $post_id ); ?>">
+							<?php echo esc_html( get_the_title( $post_id ) ); ?>
+							<a href="<?php echo esc_url( get_permalink( $post_id ) ); ?>" target="_blank" class="pcg-view">
+								<?php esc_html_e( 'View', 'plugiva-clientguard' ); ?>
+							</a>
+							<button type="button" class="button-link pcg-remove">
+								<?php esc_html_e( 'Remove', 'plugiva-clientguard' ); ?>
+							</button>
+							<input type="hidden"
+								name="<?php echo esc_attr( self::OPTION_NAME . '[protected_content][]' ); ?>"
+								value="<?php echo esc_attr( $post_id ); ?>" />
+						</li>
+					<?php endforeach; ?>
+				<?php endif; ?>
+			</ul>
+
+			<p class="description">
+				<?php esc_html_e( 'Selected pages will be protected from editing and deletion.', 'plugiva-clientguard' ); ?>
+				<br />
+				<em><?php esc_html_e( 'Post protection is available in ClientGuard Pro.', 'plugiva-clientguard' ); ?></em>
+			</p>
+
+		</div>
+		<?php
+	}
+
 
 	/**
 	 * Render settings page (placeholder).
