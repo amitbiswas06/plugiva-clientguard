@@ -38,7 +38,7 @@ class PCG_Admin_Assets {
 			'pcg-content-protection',
 			PCG_PLUGIN_URL . 'assets/admin/content-protection.js',
 			array(),
-			microtime(),
+			PCG_VERSION,
 			true
 		);
 
@@ -50,5 +50,13 @@ class PCG_Admin_Assets {
 				'nonce'   => wp_create_nonce( 'pcg_admin_nonce' ),
 			)
 		);
+
+        wp_enqueue_style(
+            'pcg-admin',
+            PCG_PLUGIN_URL . 'assets/css/admin.css',
+            array(),
+            PCG_VERSION
+        );
+
 	}
 }

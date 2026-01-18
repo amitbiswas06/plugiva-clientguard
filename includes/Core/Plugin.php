@@ -100,6 +100,12 @@ class PCG_Core_Plugin {
 		$assets = new PCG_Admin_Assets();
 		$assets->register( $this->loader );
 
+		// Plugin settings link.
+		$this->loader->add_filter(
+			'plugin_action_links_' . plugin_basename( PCG_PLUGIN_FILE ),
+			$settings,
+			'add_plugin_settings_link'
+		);
 
 	}
 

@@ -58,6 +58,13 @@ class PCG_Admin_Settings {
 			'plugiva-clientguard'
 		);
 
+		add_settings_section(
+			'pcg_section_menu',
+			esc_html__( 'Menu Visibility', 'plugiva-clientguard' ),
+			'__return_false',
+			'plugiva-clientguard'
+		);
+
 		add_settings_field(
 			'lock_theme_switch',
 			esc_html__('Lock Theme Switching', 'plugiva-clientguard'),
@@ -102,6 +109,14 @@ class PCG_Admin_Settings {
 			'pcg_section_content'
 		);
 
+		add_settings_field(
+			'hide_menus',
+			esc_html__( 'Hide Admin Menus', 'plugiva-clientguard' ),
+			array( $this, 'render_menu_hiding' ),
+			'plugiva-clientguard',
+			'pcg_section_menu'
+		);
+
 
 	}
 
@@ -136,10 +151,6 @@ class PCG_Admin_Settings {
 		$defaults = $this->get_default_settings();
 		$output   = array();
 
-		$output['hide_menus'] = isset( $input['hide_menus'] ) && is_array( $input['hide_menus'] )
-			? array_map( 'sanitize_text_field', $input['hide_menus'] )
-			: array();
-
 		$output['lock_theme_switch']   = ! empty( $input['lock_theme_switch'] );
 		
 		$output['lock_plugin_install'] = ! empty( $input['lock_plugin_install'] );
@@ -150,6 +161,12 @@ class PCG_Admin_Settings {
 			$output['protected_content'] = array_map( 'absint', $input['protected_content'] );
 		} else {
 			$output['protected_content'] = array();
+		}
+
+		if ( isset( $input['hide_menus'] ) && is_array( $input['hide_menus'] ) ) {
+			$output['hide_menus'] = array_map( 'sanitize_text_field', $input['hide_menus'] );
+		} else {
+			$output['hide_menus'] = array();
 		}
 
 		$output['admin_notice_text'] = isset( $input['admin_notice_text'] )
@@ -189,7 +206,7 @@ class PCG_Admin_Settings {
 		</label>
 
 		<?php if ( $note ) : ?>
-			<p class="description"><small><em><?php echo esc_html( $note ); ?></em></small></p>
+			<p class="description"><small><?php echo esc_html( $note ); ?></small></p>
 		<?php endif; ?>
 		<?php
 	}
@@ -246,11 +263,61 @@ class PCG_Admin_Settings {
 			<p class="description">
 				<?php esc_html_e( 'Selected pages will be protected from editing and deletion.', 'plugiva-clientguard' ); ?>
 				<br />
-				<em><?php esc_html_e( 'Post protection is available in ClientGuard Pro.', 'plugiva-clientguard' ); ?></em>
+				<small><?php esc_html_e( 'Post protection is available in ClientGuard Pro.', 'plugiva-clientguard' ); ?></small>
 			</p>
 
 		</div>
 		<?php
+	}
+
+	public function render_menu_hiding() {
+
+		$settings    = get_option( self::OPTION_NAME );
+		$hidden      = ! empty( $settings['hide_menus'] )
+			? (array) $settings['hide_menus']
+			: array();
+
+		$menus = array(
+			'plugins.php'          => __( 'Plugins', 'plugiva-clientguard' ),
+			'themes.php'           => __( 'Themes', 'plugiva-clientguard' ),
+			'upload.php'           => __( 'Media', 'plugiva-clientguard' ),
+			'users.php'            => __( 'Users', 'plugiva-clientguard' ),
+			'tools.php'            => __( 'Tools', 'plugiva-clientguard' ),
+			'edit-comments.php'    => __( 'Comments', 'plugiva-clientguard' ),
+		);
+
+		echo '<fieldset>';
+
+		foreach ( $menus as $slug => $label ) {
+			printf(
+				'<label style="display:block;margin-bottom:4px;">
+					<input type="checkbox"
+						name="%1$s[]"
+						value="%2$s"
+						%3$s />
+					%4$s
+				</label>',
+				esc_attr( self::OPTION_NAME . '[hide_menus]' ),
+				esc_attr( $slug ),
+				checked( in_array( $slug, $hidden, true ), true, false ),
+				esc_html( $label )
+			);
+		}
+
+		echo '</fieldset>';
+
+		printf(
+			'<p class="description">%s<br><small>%s</small></p>',
+			esc_html__(
+				'Hidden menus are removed from the sidebar but remain accessible via direct links.',
+				'plugiva-clientguard'
+			),
+			esc_html__(
+				'Additional menu controls, including hiding the Settings menu, are available in ClientGuard Pro.',
+				'plugiva-clientguard'
+			)
+		);
+
 	}
 
 
@@ -271,6 +338,25 @@ class PCG_Admin_Settings {
 			</form>
 		</div>
 		<?php
+	}
+
+	/**
+	 * Add settings link to plugin action links.
+	 *
+	 * @param array $links Existing links.
+	 * @return array
+	 */
+	public function add_plugin_settings_link( $links ) {
+
+		$settings_link = sprintf(
+			'<a href="%s">%s</a>',
+			esc_url( admin_url( 'options-general.php?page=plugiva-clientguard' ) ),
+			esc_html__( 'Settings', 'plugiva-clientguard' )
+		);
+
+		array_unshift( $links, $settings_link );
+
+		return $links;
 	}
 
 }

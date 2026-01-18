@@ -37,49 +37,6 @@ class PCG_Admin_Content_Guard {
 	 * @param array  $args    Arguments (post ID usually at index 0).
 	 * @return array
 	 */
-	/* public function protect_content( $caps, $cap, $user_id, $args ) {
-
-		// Only care about post capabilities.
-		if ( empty( $args[0] ) ) {
-			return $caps;
-		}
-
-		$post_id = absint( $args[0] );
-
-		if ( ! $post_id ) {
-			return $caps;
-		}
-
-		// Never restrict network super admins.
-		if ( is_multisite() && is_super_admin( $user_id ) ) {
-			return $caps;
-		}
-
-		$settings = get_option( self::OPTION_NAME );
-
-		if ( empty( $settings['protected_content'] ) || ! is_array( $settings['protected_content'] ) ) {
-			return $caps;
-		}
-
-		if ( ! in_array( $post_id, $settings['protected_content'], true ) ) {
-			return $caps;
-		}
-
-		// Block delete & edit actions.
-		$blocked_caps = array(
-			'delete_post',
-			'delete_page',
-			'edit_post',
-			'edit_page',
-		);
-
-		if ( in_array( $cap, $blocked_caps, true ) ) {
-			return array( 'do_not_allow' );
-		}
-
-		return $caps;
-	} */
-
     public function protect_content( $caps, $cap, $user_id, $args ) {
 
         $relevant_caps = array(
