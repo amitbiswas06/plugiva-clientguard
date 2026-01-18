@@ -76,15 +76,19 @@ class PCG_Core_Plugin {
 
 		// Theme Guard.
 		$theme_guard = new PCG_Admin_Theme_Guard();
-		// $theme_guard->register( $this->loader );
+		$theme_guard->register( $this->loader );
 
 		// Plugin Guard.
 		$plugin_guard = new PCG_Admin_Plugin_Guard();
-		// $plugin_guard->register( $this->loader );
+		$plugin_guard->register( $this->loader );
 
 		// Content Guard.
 		$content_guard = new PCG_Admin_Content_Guard();
 		$content_guard->register( $this->loader );
+
+		// Admin Notices.
+		$notices = new PCG_Admin_Notices();
+		$notices->register( $this->loader );
 
 	}
 

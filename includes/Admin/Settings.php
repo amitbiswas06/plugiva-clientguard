@@ -43,6 +43,58 @@ class PCG_Admin_Settings {
 		if ( false === get_option( self::OPTION_NAME ) ) {
 			add_option( self::OPTION_NAME, $this->get_default_settings() );
 		}
+
+		add_settings_section(
+			'pcg_section_general',
+			esc_html__('General Protection', 'plugiva-clientguard'),
+			'__return_false',
+			'plugiva-clientguard'
+		);
+
+		add_settings_section(
+			'pcg_section_content',
+			esc_html__('Content Protection', 'plugiva-clientguard'),
+			'__return_false',
+			'plugiva-clientguard'
+		);
+
+		add_settings_field(
+			'lock_theme_switch',
+			esc_html__('Lock Theme Switching', 'plugiva-clientguard'),
+			array($this, 'render_checkbox'),
+			'plugiva-clientguard',
+			'pcg_section_general',
+			array(
+				'key'   => 'lock_theme_switch',
+				'label' => esc_html__('Prevent switching or deleting themes', 'plugiva-clientguard'),
+			)
+		);
+
+		add_settings_field(
+			'lock_plugin_install',
+			esc_html__('Lock Plugin Installation', 'plugiva-clientguard'),
+			array($this, 'render_checkbox'),
+			'plugiva-clientguard',
+			'pcg_section_general',
+			array(
+				'key'   => 'lock_plugin_install',
+				'label' => esc_html__('Prevent installing or deleting plugins', 'plugiva-clientguard'),
+			)
+		);
+
+		add_settings_field(
+			'allow_plugin_toggle',
+			esc_html__('Allow Plugin Activation', 'plugiva-clientguard'),
+			array($this, 'render_checkbox'),
+			'plugiva-clientguard',
+			'pcg_section_general',
+			array(
+				'key'   => 'allow_plugin_toggle',
+				'label' => esc_html__('Allow activating or deactivating plugins', 'plugiva-clientguard'),
+			)
+		);
+
+
 	}
 
 	/**
@@ -53,10 +105,11 @@ class PCG_Admin_Settings {
 	private function get_default_settings() {
 		return array(
 			'hide_menus'            => array(),
-			'lock_theme_switch'     => true,
-			'lock_plugin_install'   => true,
+			'lock_theme_switch'     => false,
+			'lock_plugin_install'   => false,
 			'allow_plugin_toggle'   => true,
 			'protected_content'     => array(),
+			// 'pcg_activated'         => true, // Later use.
 			'admin_notice_text'     => esc_html__(
 				'Some site settings are managed to keep things running smoothly.',
 				'plugiva-clientguard'
@@ -79,17 +132,11 @@ class PCG_Admin_Settings {
 			? array_map( 'sanitize_text_field', $input['hide_menus'] )
 			: array();
 
-		$output['lock_theme_switch'] = isset( $input['lock_theme_switch'] )
-			? (bool) $input['lock_theme_switch']
-			: $defaults['lock_theme_switch'];
+		$output['lock_theme_switch']   = ! empty( $input['lock_theme_switch'] );
+		
+		$output['lock_plugin_install'] = ! empty( $input['lock_plugin_install'] );
 
-		$output['lock_plugin_install'] = isset( $input['lock_plugin_install'] )
-			? (bool) $input['lock_plugin_install']
-			: $defaults['lock_plugin_install'];
-
-		$output['allow_plugin_toggle'] = isset( $input['allow_plugin_toggle'] )
-			? (bool) $input['allow_plugin_toggle']
-			: $defaults['allow_plugin_toggle'];
+		$output['allow_plugin_toggle'] = ! empty( $input['allow_plugin_toggle'] );
 
 		$output['protected_content'] = isset( $input['protected_content'] ) && is_array( $input['protected_content'] )
 			? array_map( 'absint', $input['protected_content'] )
@@ -102,6 +149,41 @@ class PCG_Admin_Settings {
 		return $output;
 	}
 
+	public function render_checkbox( $args ) {
+
+		$settings = get_option( self::OPTION_NAME );
+		$key      = $args['key'];
+		$label    = $args['label'];
+
+		$value    = ! empty( $settings[ $key ] );
+		$disabled = false;
+		$note     = '';
+
+		// Dependency: allow_plugin_toggle depends on lock_plugin_install.
+		if ( 'allow_plugin_toggle' === $key && empty( $settings['lock_plugin_install'] ) ) {
+			$disabled = true;
+			$note     = esc_html__(
+				'Enable “Lock Plugin Installation” to control plugin activation.',
+				'plugiva-clientguard'
+			);
+		}
+
+		?>
+		<label>
+			<input type="checkbox"
+				name="<?php echo esc_attr( self::OPTION_NAME . '[' . $key . ']' ); ?>"
+				value="1"
+				<?php checked( $value ); ?>
+				<?php disabled( $disabled ); ?> />
+			<?php echo esc_html( $label ); ?>
+		</label>
+
+		<?php if ( $note ) : ?>
+			<p class="description"><small><em><?php echo esc_html( $note ); ?></em></small></p>
+		<?php endif; ?>
+		<?php
+	}
+
 	/**
 	 * Render settings page (placeholder).
 	 */
@@ -109,13 +191,16 @@ class PCG_Admin_Settings {
 		?>
 		<div class="wrap">
 			<h1><?php echo esc_html__( 'Plugiva ClientGuard', 'plugiva-clientguard' ); ?></h1>
-			<p>
-				<?php echo esc_html__(
-					'ClientGuard is active. Settings UI will be available here.',
-					'plugiva-clientguard'
-				); ?>
-			</p>
+
+			<form method="post" action="options.php">
+				<?php
+				settings_fields( 'pcg_settings_group' );
+				do_settings_sections( 'plugiva-clientguard' );
+				submit_button();
+				?>
+			</form>
 		</div>
 		<?php
 	}
+
 }
