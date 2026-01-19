@@ -46,12 +46,16 @@ class PCG_Admin_Notices {
 		$this->maybe_render_notice( 'theme', $screen, $settings );
 		$this->maybe_render_notice( 'plugin', $screen, $settings );
 
-		if ( 'post' === $screen->base && ! empty( $_GET['post'] ) ) {
+		if (
+			'post' === $screen->base &&
+			! empty( $screen->post_type ) &&
+			! empty( $screen->post_id )
+		) {
 			$this->maybe_render_notice(
 				'content',
 				$screen,
 				$settings,
-				absint( $_GET['post'] )
+				(int) $screen->post_id
 			);
 		}
 	}

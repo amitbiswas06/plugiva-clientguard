@@ -21,7 +21,6 @@ class PCG_Core_Plugin {
 	 */
 	public function __construct() {
 		$this->load_dependencies();
-		$this->set_locale();
 		$this->define_admin_hooks();
 	}
 
@@ -31,7 +30,6 @@ class PCG_Core_Plugin {
 	private function load_dependencies() {
 
 		require_once PCG_PLUGIN_PATH . 'includes/Core/Loader.php';
-		require_once PCG_PLUGIN_PATH . 'includes/Core/I18n.php';
 
 		require_once PCG_PLUGIN_PATH . 'includes/Admin/Settings.php';
 		require_once PCG_PLUGIN_PATH . 'includes/Admin/Menu_Guard.php';
@@ -43,14 +41,6 @@ class PCG_Core_Plugin {
 		require_once PCG_PLUGIN_PATH . 'includes/Admin/Assets.php';
 
 		$this->loader = new PCG_Core_Loader();
-	}
-
-	/**
-	 * Set plugin locale for internationalization.
-	 */
-	private function set_locale() {
-		$plugin_i18n = new PCG_Core_I18n();
-		$this->loader->add_action( 'plugins_loaded', $plugin_i18n, 'load_textdomain' );
 	}
 
 	/**

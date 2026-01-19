@@ -1,6 +1,6 @@
 === Plugiva ClientGuard ===
 Contributors: plugiva
-Tags: admin, safety, guard, plugins, themes, menus, content
+Tags: admin, safety, plugins, themes, content
 Requires at least: 6.0
 Tested up to: 6.9
 Requires PHP: 7.4
@@ -65,6 +65,10 @@ All plugin settings are removed cleanly when the plugin is uninstalled.
 1. ClientGuard settings page.
 2. Content Protection interface.
 3. Menu Visibility options.
+
+== Developer Hooks ==
+
+Plugiva ClientGuard provides filter hooks that allow developers to customize certain behaviors, including admin notice messages, without modifying plugin code.
 
 == Changelog ==
 
