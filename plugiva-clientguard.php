@@ -3,9 +3,11 @@
  * Plugin Name: Plugiva ClientGuard
  * Plugin URI:  https://plugiva.com
  * Description: Gently protect WordPress sites from accidental client-side changes.
- * Version:     0.1.0
+ * Version:     1.0.0
  * Author:      Plugiva
  * Author URI:  https://plugiva.com
+ * License:     GPL v2 or later
+ * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: plugiva-clientguard
  * Domain Path: /languages
  *
@@ -17,7 +19,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Plugin version.
  */
-define( 'PCG_VERSION', '0.1.0' );
+define( 'PCG_VERSION', '1.0.0' );
 
 /**
  * Plugin file.

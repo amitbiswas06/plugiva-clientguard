@@ -132,7 +132,6 @@ class PCG_Admin_Settings {
 			'lock_plugin_install'   => false,
 			'allow_plugin_toggle'   => true,
 			'protected_content'     => array(),
-			// 'pcg_activated'         => true, // Later use.
 			'admin_notice_text'     => esc_html__(
 				'Some site settings are managed to keep things running smoothly.',
 				'plugiva-clientguard'
@@ -148,27 +147,44 @@ class PCG_Admin_Settings {
 	 */
 	public function sanitize_settings( $input ) {
 
+		// Get defaults for reference.
 		$defaults = $this->get_default_settings();
 		$output   = array();
 
+		// Sanitize checkboxes.
 		$output['lock_theme_switch']   = ! empty( $input['lock_theme_switch'] );
 		
 		$output['lock_plugin_install'] = ! empty( $input['lock_plugin_install'] );
 
 		$output['allow_plugin_toggle'] = ! empty( $input['allow_plugin_toggle'] );
 
+		// Sanitize protected content IDs.
 		if ( isset( $input['protected_content'] ) && is_array( $input['protected_content'] ) ) {
-			$output['protected_content'] = array_map( 'absint', $input['protected_content'] );
+
+			$clean = array();
+
+			foreach ( $input['protected_content'] as $post_id ) {
+				$post_id = absint( $post_id );
+
+				if ( $post_id && get_post( $post_id ) ) {
+					$clean[] = $post_id;
+				}
+			}
+
+			$output['protected_content'] = $clean;
+
 		} else {
 			$output['protected_content'] = array();
 		}
 
+		// Sanitize hidden menus.
 		if ( isset( $input['hide_menus'] ) && is_array( $input['hide_menus'] ) ) {
 			$output['hide_menus'] = array_map( 'sanitize_text_field', $input['hide_menus'] );
 		} else {
 			$output['hide_menus'] = array();
 		}
 
+		// Sanitize admin notice text.
 		$output['admin_notice_text'] = isset( $input['admin_notice_text'] )
 			? sanitize_text_field( $input['admin_notice_text'] )
 			: $defaults['admin_notice_text'];
@@ -218,6 +234,13 @@ class PCG_Admin_Settings {
 			? array_map( 'absint', (array) $settings['protected_content'] )
 			: array();
 
+			// Remove stale / deleted posts.
+			$protected = array_filter(
+				$protected,
+				function ( $post_id ) {
+					return get_post( $post_id );
+				}
+			);
 		?>
 		<div id="pcg-content-protection">
 
@@ -279,7 +302,7 @@ class PCG_Admin_Settings {
 
 		$menus = array(
 			'plugins.php'          => __( 'Plugins', 'plugiva-clientguard' ),
-			'themes.php'           => __( 'Themes', 'plugiva-clientguard' ),
+			'themes.php'           => __( 'Appearance', 'plugiva-clientguard' ),
 			'upload.php'           => __( 'Media', 'plugiva-clientguard' ),
 			'users.php'            => __( 'Users', 'plugiva-clientguard' ),
 			'tools.php'            => __( 'Tools', 'plugiva-clientguard' ),
@@ -313,7 +336,7 @@ class PCG_Admin_Settings {
 				'plugiva-clientguard'
 			),
 			esc_html__(
-				'Additional menu controls, including hiding the Settings menu, are available in ClientGuard Pro.',
+				'Additional menu controls, including sub-menu items, are available in ClientGuard Pro.',
 				'plugiva-clientguard'
 			)
 		);

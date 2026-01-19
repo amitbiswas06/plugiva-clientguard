@@ -42,10 +42,6 @@ class PCG_Core_Plugin {
 		require_once PCG_PLUGIN_PATH . 'includes/Admin/Ajax.php';
 		require_once PCG_PLUGIN_PATH . 'includes/Admin/Assets.php';
 
-		require_once PCG_PLUGIN_PATH . 'includes/Utils/Capabilities.php';
-		require_once PCG_PLUGIN_PATH . 'includes/Utils/Helpers.php';
-		require_once PCG_PLUGIN_PATH . 'includes/Utils/Security.php';
-
 		$this->loader = new PCG_Core_Loader();
 	}
 
