@@ -1,7 +1,6 @@
 <?php
 /**
  * Plugin Name: Plugiva ClientGuard
- * Plugin URI:  https://plugiva.com
  * Description: Gently protect WordPress sites from accidental client-side changes.
  * Version:     1.0.0
  * Author:      Plugiva
