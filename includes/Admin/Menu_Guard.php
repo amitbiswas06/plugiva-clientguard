@@ -7,17 +7,17 @@
 
 defined( 'ABSPATH' ) || exit;
 
-class PCG_Admin_Menu_Guard {
+class PCGD_Admin_Menu_Guard {
 
 	/**
 	 * Settings option name.
 	 */
-	const OPTION_NAME = 'pcg_settings';
+	const OPTION_NAME = 'pcgd_settings';
 
 	/**
 	 * Initialize hooks.
 	 *
-	 * @param PCG_Core_Loader $loader Loader instance.
+	 * @param PCGD_Core_Loader $loader Loader instance.
 	 */
 	public function register( $loader ) {
 		$loader->add_action( 'admin_menu', $this, 'hide_menus', 999 );

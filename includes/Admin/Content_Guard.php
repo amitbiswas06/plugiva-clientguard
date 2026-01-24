@@ -7,22 +7,22 @@
 
 defined( 'ABSPATH' ) || exit;
 
-class PCG_Admin_Content_Guard {
+class PCGD_Admin_Content_Guard {
 
 	/**
 	 * Option name.
 	 */
-	const OPTION_NAME = 'pcg_settings';
+	const OPTION_NAME = 'pcgd_settings';
 
 	/**
 	 * Protected post meta key.
 	 */
-	const META_KEY = '_pcg_protected';
+	const META_KEY = '_pcgd_protected';
 
 	/**
 	 * Register hooks.
 	 *
-	 * @param PCG_Core_Loader $loader Loader instance.
+	 * @param PCGD_Core_Loader $loader Loader instance.
 	 */
 	public function register( $loader ) {
 		$loader->add_filter( 'map_meta_cap', $this, 'protect_content', 10, 4 );

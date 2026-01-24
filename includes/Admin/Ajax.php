@@ -7,15 +7,15 @@
 
 defined( 'ABSPATH' ) || exit;
 
-class PCG_Admin_Ajax {
+class PCGD_Admin_Ajax {
 
 	/**
 	 * Register hooks.
 	 *
-	 * @param PCG_Core_Loader $loader Loader instance.
+	 * @param PCGD_Core_Loader $loader Loader instance.
 	 */
 	public function register( $loader ) {
-		$loader->add_action( 'wp_ajax_pcg_search_pages', $this, 'search_pages' );
+		$loader->add_action( 'wp_ajax_pcgd_search_pages', $this, 'search_pages' );
 	}
 
 	/**
@@ -27,7 +27,7 @@ class PCG_Admin_Ajax {
 			wp_send_json_error();
 		}
 
-		check_ajax_referer( 'pcg_admin_nonce', 'nonce' );
+		check_ajax_referer( 'pcgd_admin_nonce', 'nonce' );
 
 		$term = isset( $_POST['term'] )
 			? sanitize_text_field( wp_unslash( $_POST['term'] ) )

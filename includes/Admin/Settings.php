@@ -7,12 +7,12 @@
 
 defined( 'ABSPATH' ) || exit;
 
-class PCG_Admin_Settings {
+class PCGD_Admin_Settings {
 
 	/**
 	 * Option name used to store settings.
 	 */
-	const OPTION_NAME = 'pcg_settings';
+	const OPTION_NAME = 'pcgd_settings';
 
 	/**
 	 * Register the settings page.
@@ -34,7 +34,7 @@ class PCG_Admin_Settings {
 	public function register_settings() {
 
 		register_setting(
-			'pcg_settings_group',
+			'pcgd_settings_group',
 			self::OPTION_NAME,
 			array( $this, 'sanitize_settings' )
 		);
@@ -45,21 +45,21 @@ class PCG_Admin_Settings {
 		}
 
 		add_settings_section(
-			'pcg_section_general',
+			'pcgd_section_general',
 			esc_html__('General Protection', 'plugiva-clientguard'),
 			'__return_false',
 			'plugiva-clientguard'
 		);
 
 		add_settings_section(
-			'pcg_section_content',
+			'pcgd_section_content',
 			esc_html__('Content Protection', 'plugiva-clientguard'),
 			'__return_false',
 			'plugiva-clientguard'
 		);
 
 		add_settings_section(
-			'pcg_section_menu',
+			'pcgd_section_menu',
 			esc_html__( 'Menu Visibility', 'plugiva-clientguard' ),
 			'__return_false',
 			'plugiva-clientguard'
@@ -70,7 +70,7 @@ class PCG_Admin_Settings {
 			esc_html__('Lock Theme Switching', 'plugiva-clientguard'),
 			array($this, 'render_checkbox'),
 			'plugiva-clientguard',
-			'pcg_section_general',
+			'pcgd_section_general',
 			array(
 				'key'   => 'lock_theme_switch',
 				'label' => esc_html__('Prevent switching or deleting themes', 'plugiva-clientguard'),
@@ -82,7 +82,7 @@ class PCG_Admin_Settings {
 			esc_html__('Lock Plugin Installation', 'plugiva-clientguard'),
 			array($this, 'render_checkbox'),
 			'plugiva-clientguard',
-			'pcg_section_general',
+			'pcgd_section_general',
 			array(
 				'key'   => 'lock_plugin_install',
 				'label' => esc_html__('Prevent installing or deleting plugins', 'plugiva-clientguard'),
@@ -94,7 +94,7 @@ class PCG_Admin_Settings {
 			esc_html__('Allow Plugin Activation', 'plugiva-clientguard'),
 			array($this, 'render_checkbox'),
 			'plugiva-clientguard',
-			'pcg_section_general',
+			'pcgd_section_general',
 			array(
 				'key'   => 'allow_plugin_toggle',
 				'label' => esc_html__('Allow activating or deactivating plugins', 'plugiva-clientguard'),
@@ -106,7 +106,7 @@ class PCG_Admin_Settings {
 			esc_html__( 'Protected Content', 'plugiva-clientguard' ),
 			array( $this, 'render_protected_content' ),
 			'plugiva-clientguard',
-			'pcg_section_content'
+			'pcgd_section_content'
 		);
 
 		add_settings_field(
@@ -114,7 +114,7 @@ class PCG_Admin_Settings {
 			esc_html__( 'Hide Admin Menus', 'plugiva-clientguard' ),
 			array( $this, 'render_menu_hiding' ),
 			'plugiva-clientguard',
-			'pcg_section_menu'
+			'pcgd_section_menu'
 		);
 
 
@@ -206,7 +206,7 @@ class PCG_Admin_Settings {
 		if ( 'allow_plugin_toggle' === $key && empty( $settings['lock_plugin_install'] ) ) {
 			$disabled = true;
 			$note     = esc_html__(
-				'Enable “Lock Plugin Installation” to control plugin activation.',
+				'Enable "Lock Plugin Installation" to control plugin activation.',
 				'plugiva-clientguard'
 			);
 		}
@@ -242,25 +242,25 @@ class PCG_Admin_Settings {
 				}
 			);
 		?>
-		<div id="pcg-content-protection">
+		<div id="pcgd-content-protection">
 
 			<div style="margin-bottom:10px;">
 				<input type="text"
-					id="pcg-page-search"
+					id="pcgd-page-search"
 					class="regular-text"
 					placeholder="<?php esc_attr_e( 'Search pages by title…', 'plugiva-clientguard' ); ?>" />
 				<button type="button"
 						class="button button-primary"
-						id="pcg-page-search-btn">
+						id="pcgd-page-search-btn">
 					<?php esc_html_e( 'Search', 'plugiva-clientguard' ); ?>
 				</button>
 			</div>
 
-			<div id="pcg-search-results" style="margin-bottom:15px;"></div>
+			<div id="pcgd-search-results" style="margin-bottom:15px;"></div>
 
 			<strong><?php esc_html_e( 'Protected Pages', 'plugiva-clientguard' ); ?></strong>
 
-			<ul id="pcg-protected-list">
+			<ul id="pcgd-protected-list">
 				<?php if ( empty( $protected ) ) : ?>
 					<li class="description">
 						<?php esc_html_e( 'No pages are currently protected.', 'plugiva-clientguard' ); ?>
@@ -269,10 +269,10 @@ class PCG_Admin_Settings {
 					<?php foreach ( $protected as $post_id ) : ?>
 						<li data-id="<?php echo esc_attr( $post_id ); ?>">
 							<?php echo esc_html( get_the_title( $post_id ) ); ?>
-							<a href="<?php echo esc_url( get_permalink( $post_id ) ); ?>" target="_blank" class="pcg-view">
+							<a href="<?php echo esc_url( get_permalink( $post_id ) ); ?>" target="_blank" class="pcgd-view">
 								<?php esc_html_e( 'View', 'plugiva-clientguard' ); ?>
 							</a>
-							<button type="button" class="button-link pcg-remove">
+							<button type="button" class="button-link pcgd-remove">
 								<?php esc_html_e( 'Remove', 'plugiva-clientguard' ); ?>
 							</button>
 							<input type="hidden"
@@ -286,7 +286,7 @@ class PCG_Admin_Settings {
 			<p class="description">
 				<?php esc_html_e( 'Selected pages will be protected from editing and deletion.', 'plugiva-clientguard' ); ?>
 				<br />
-				<small><?php esc_html_e( 'Post protection is available in ClientGuard Pro.', 'plugiva-clientguard' ); ?></small>
+				<small><?php esc_html_e( 'Post protection is available in "Plugiva ClientGuard Pro."', 'plugiva-clientguard' ); ?></small>
 			</p>
 
 		</div>
@@ -336,7 +336,7 @@ class PCG_Admin_Settings {
 				'plugiva-clientguard'
 			),
 			esc_html__(
-				'Additional menu controls, including sub-menu items, are available in ClientGuard Pro.',
+				'Additional menu controls, including sub-menu items, are available in "Plugiva ClientGuard Pro."',
 				'plugiva-clientguard'
 			)
 		);
@@ -354,7 +354,7 @@ class PCG_Admin_Settings {
 
 			<form method="post" action="options.php">
 				<?php
-				settings_fields( 'pcg_settings_group' );
+				settings_fields( 'pcgd_settings_group' );
 				do_settings_sections( 'plugiva-clientguard' );
 				submit_button();
 				?>

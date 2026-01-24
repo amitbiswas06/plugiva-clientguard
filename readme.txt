@@ -1,5 +1,5 @@
 === Plugiva ClientGuard ===
-Contributors: plugiva
+Contributors: amitbiswas06
 Tags: admin, safety, plugins, themes, content
 Requires at least: 6.0
 Tested up to: 6.9

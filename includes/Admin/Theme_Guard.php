@@ -7,17 +7,17 @@
 
 defined( 'ABSPATH' ) || exit;
 
-class PCG_Admin_Theme_Guard {
+class PCGD_Admin_Theme_Guard {
 
 	/**
 	 * Option name.
 	 */
-	const OPTION_NAME = 'pcg_settings';
+	const OPTION_NAME = 'pcgd_settings';
 
 	/**
 	 * Register hooks.
 	 *
-	 * @param PCG_Core_Loader $loader Loader instance.
+	 * @param PCGD_Core_Loader $loader Loader instance.
 	 */
 	public function register( $loader ) {
 		$loader->add_filter( 'user_has_cap', $this, 'block_theme_caps', 10, 4 );

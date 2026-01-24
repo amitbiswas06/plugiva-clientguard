@@ -1,11 +1,11 @@
 /* Content Protection UI */
 
-#pcg-content-protection {
+#pcgd-content-protection {
 	max-width: 720px;
 }
 
-#pcg-content-protection .pcg-search-row,
-#pcg-protected-list li {
+#pcgd-content-protection .pcgd-search-row,
+#pcgd-protected-list li {
 	display: flex;
 	align-items: center;
     justify-content: flex-start;
@@ -13,17 +13,17 @@
 	margin-bottom: 6px;
 }
 
-#pcg-content-protection .pcg-search-row {
+#pcgd-content-protection .pcgd-search-row {
 	padding: 6px 8px;
 	background: #f6f7f7;
 	border-radius: 4px;
 }
 
-#pcg-content-protection .pcg-view {
+#pcgd-content-protection .pcgd-view {
 	text-decoration: none;
 }
 
-#pcg-content-protection .pcg-remove {
+#pcgd-content-protection .pcgd-remove {
 	margin-left: 8px;
 }
 

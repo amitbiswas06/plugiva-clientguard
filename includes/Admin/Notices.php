@@ -7,17 +7,17 @@
 
 defined( 'ABSPATH' ) || exit;
 
-class PCG_Admin_Notices {
+class PCGD_Admin_Notices {
 
 	/**
 	 * Option name.
 	 */
-	const OPTION_NAME = 'pcg_settings';
+	const OPTION_NAME = 'pcgd_settings';
 
 	/**
 	 * Register hooks.
 	 *
-	 * @param PCG_Core_Loader $loader Loader instance.
+	 * @param PCGD_Core_Loader $loader Loader instance.
 	 */
 	public function register( $loader ) {
 		$loader->add_action( 'admin_notices', $this, 'show_notices' );
@@ -101,7 +101,7 @@ class PCG_Admin_Notices {
 		}
 
 		$message = apply_filters(
-			'pcg_notice_message',
+			'pcgd_notice_message',
 			$notice['message'],
 			array(
 				'type'   => $type,

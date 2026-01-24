@@ -1,10 +1,10 @@
 (function () {
-	const searchBtn = document.getElementById('pcg-page-search-btn');
+	const searchBtn = document.getElementById('pcgd-page-search-btn');
 	if (!searchBtn) return;
 
-	const input = document.getElementById('pcg-page-search');
-	const results = document.getElementById('pcg-search-results');
-	const list = document.getElementById('pcg-protected-list');
+	const input = document.getElementById('pcgd-page-search');
+	const results = document.getElementById('pcgd-search-results');
+	const list = document.getElementById('pcgd-protected-list');
 
     input.addEventListener('keydown', function (e) {
         if (e.key === 'Enter') {
@@ -23,11 +23,11 @@
 		results.innerHTML = 'Searching…';
 
 		const data = new FormData();
-		data.append('action', 'pcg_search_pages');
+		data.append('action', 'pcgd_search_pages');
 		data.append('term', term);
-		data.append('nonce', pcgAdmin.nonce);
+		data.append('nonce', pcgdAdmin.nonce);
 
-		fetch(pcgAdmin.ajaxUrl, {
+		fetch(pcgdAdmin.ajaxUrl, {
 			method: 'POST',
 			body: data
 		})
@@ -47,12 +47,12 @@
                 }
 
                 const row = document.createElement('div');
-                row.className = 'pcg-search-row';
+                row.className = 'pcgd-search-row';
                 row.innerHTML = `
                     ${page.title}
-                    <a href="${page.link}" target="_blank" class="pcg-view">View</a>
+                    <a href="${page.link}" target="_blank" class="pcgd-view">View</a>
                     <button type="button"
-                            class="button pcg-add"
+                            class="button pcgd-add"
                             data-id="${page.id}"
                             data-title="${page.title}">
                         Add
@@ -66,7 +66,7 @@
 	});
 
 	results.addEventListener('click', function (e) {
-		if (!e.target.classList.contains('pcg-add')) return;
+		if (!e.target.classList.contains('pcgd-add')) return;
 
 		const id = e.target.dataset.id;
 		const title = e.target.dataset.title;
@@ -79,19 +79,19 @@
 		li.dataset.id = id;
 		li.innerHTML = `
 			${title}
-			<button type="button" class="button-link pcg-remove">Remove</button>
-			<input type="hidden" name="pcg_settings[protected_content][]" value="${id}" />
+			<button type="button" class="button-link pcgd-remove">Remove</button>
+			<input type="hidden" name="pcgd_settings[protected_content][]" value="${id}" />
 		`;
 
 		list.appendChild(li);
 
         // After adding to protected list
-        e.target.closest('.pcg-search-row').remove();
+        e.target.closest('.pcgd-search-row').remove();
 
 	});
 
 	list.addEventListener('click', function (e) {
-		if (!e.target.classList.contains('pcg-remove')) return;
+		if (!e.target.classList.contains('pcgd-remove')) return;
 		e.target.closest('li').remove();
 	});
 })();

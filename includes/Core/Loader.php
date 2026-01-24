@@ -7,7 +7,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-class PCG_Core_Loader {
+class PCGD_Core_Loader {
 
 	/**
 	 * The array of actions registered with WordPress.

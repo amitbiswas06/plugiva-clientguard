@@ -7,12 +7,12 @@
 
 defined( 'ABSPATH' ) || exit;
 
-class PCG_Admin_Assets {
+class PCGD_Admin_Assets {
 
 	/**
 	 * Register hooks.
 	 *
-	 * @param PCG_Core_Loader $loader Loader instance.
+	 * @param PCGD_Core_Loader $loader Loader instance.
 	 */
 	public function register( $loader ) {
 		$loader->add_action(
@@ -35,27 +35,27 @@ class PCG_Admin_Assets {
 		}
 
 		wp_enqueue_script(
-			'pcg-content-protection',
-			PCG_PLUGIN_URL . 'assets/admin/content-protection.js',
+			'pcgd-content-protection',
+			PCGD_PLUGIN_URL . 'assets/admin/content-protection.js',
 			array(),
-			PCG_VERSION,
+			PCGD_VERSION,
 			true
 		);
 
 		wp_localize_script(
-			'pcg-content-protection',
-			'pcgAdmin',
+			'pcgd-content-protection',
+			'pcgdAdmin',
 			array(
 				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
-				'nonce'   => wp_create_nonce( 'pcg_admin_nonce' ),
+				'nonce'   => wp_create_nonce( 'pcgd_admin_nonce' ),
 			)
 		);
 
         wp_enqueue_style(
-            'pcg-admin',
-            PCG_PLUGIN_URL . 'assets/css/admin.css',
+            'pcgd-admin',
+            PCGD_PLUGIN_URL . 'assets/css/admin.css',
             array(),
-            PCG_VERSION
+            PCGD_VERSION
         );
 
 	}

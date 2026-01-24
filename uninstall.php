@@ -8,12 +8,12 @@
 defined( 'WP_UNINSTALL_PLUGIN' ) || exit;
 
 // Allow developers to prevent data deletion.
-if ( false === apply_filters( 'pcg_allow_uninstall_cleanup', true ) ) {
+if ( false === apply_filters( 'pcgd_allow_uninstall_cleanup', true ) ) {
 	return;
 }
 
 // Main settings option.
-delete_option( 'pcg_settings' );
+delete_option( 'pcgd_settings' );
 
-// (Optional safety) Delete site option too, if ever used later.
-delete_site_option( 'pcg_settings' );
+// (Optional safety) Delete site option too.
+delete_site_option( 'pcgd_settings' );
