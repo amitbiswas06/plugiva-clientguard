@@ -14,7 +14,7 @@ Lock plugin installation, prevent theme switching, and restrict sensitive admin 
 
 Plugiva ClientGuard gives you control over plugin installation, theme switching, plugin updates, and other sensitive admin actions in WordPress.
 
-It helps site owners reduce accidental changes in the admin area without aggressively blocking access. Instead of acting like a security firewall, ClientGuard focuses on guardrails — controlled permissions and predictable workflows.
+It helps site owners reduce accidental changes in the admin area without aggressively blocking access. Instead of acting like a security firewall, ClientGuard focuses on guardrails - controlled permissions and predictable workflows.
 
 This plugin is ideal for:
 - Client-managed websites
@@ -27,7 +27,7 @@ This plugin is ideal for:
 * Prevent theme switching
 * Hide selected admin menus to reduce clutter
 * Protect important pages from editing or deletion
-* Safe defaults — nothing is locked on activation
+* Safe defaults - nothing is locked on activation
 * Direct URLs remain accessible (no hard lockouts)
 * Clean uninstall with no leftover data
 
