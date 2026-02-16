@@ -1,20 +1,20 @@
 === Plugiva ClientGuard ===
 Contributors: amitbiswas06
-Tags: admin, safety, plugins, themes, content
+Tags: admin lock, plugin management, theme switching, admin permissions, client safety
 Requires at least: 6.0
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 1.0.0
+Stable tag: 1.0.1
 License: GPL v2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Prevent accidental changes in the WordPress admin by safely guarding plugins, themes, menus, and critical pages.
+Lock plugin installation, prevent theme switching, and restrict sensitive admin changes in WordPress.
 
 == Description ==
 
-Plugiva ClientGuard helps site owners and administrators prevent accidental or unwanted changes in the WordPress admin area.
+Plugiva ClientGuard gives you control over plugin installation, theme switching, plugin updates, and other sensitive admin actions in WordPress.
 
-Instead of blocking access aggressively, ClientGuard focuses on *guardrails* — reducing risk while keeping the admin experience calm and predictable.
+It helps site owners reduce accidental changes in the admin area without aggressively blocking access. Instead of acting like a security firewall, ClientGuard focuses on guardrails — controlled permissions and predictable workflows.
 
 This plugin is ideal for:
 - Client-managed websites
@@ -72,10 +72,16 @@ Plugiva ClientGuard provides filter hooks that allow developers to customize cer
 
 == Changelog ==
 
+= 1.0.1 =
+* Refined plugin description and tags for improved clarity and discoverability.
+
 = 1.0.0 =
 * Initial release.
 
 == Upgrade Notice ==
+
+= 1.0.1 =
+Refined description and tag improvements.
 
 = 1.0.0 =
 Initial release.
