@@ -96,6 +96,19 @@ class PCGD_Core_Plugin {
 	}
 
 	/**
+	 * Check if client mode is active
+	 *
+	 * @return boolean
+	 * @since 1.1.0
+	 */
+	public static function is_client_mode() {
+
+		$settings = get_option( 'pcgd_settings', array() );
+
+		return ! empty( $settings['client_mode'] );
+	}
+
+	/**
 	 * Run the plugin.
 	 */
 	public function run() {

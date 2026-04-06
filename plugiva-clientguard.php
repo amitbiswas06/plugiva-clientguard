@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Plugiva ClientGuard
  * Description: Lock plugin installation, prevent theme switching, and restrict sensitive admin changes in WordPress.
- * Version:     1.0.1
+ * Version:     1.1.0
  * Author:      Plugiva
  * Author URI:  https://plugiva.com
  * License:     GPL v2 or later
@@ -18,7 +18,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Plugin version.
  */
-define( 'PCGD_VERSION', '1.0.1' );
+define( 'PCGD_VERSION', '1.1.0' );
 
 /**
  * Plugin file.

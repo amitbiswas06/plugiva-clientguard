@@ -44,6 +44,15 @@ class PCGD_Admin_Settings {
 			add_option( self::OPTION_NAME, $this->get_default_settings() );
 		}
 
+		// Client Mode section. 
+		// @since 1.1.0
+		add_settings_section(
+			'pcgd_section_client_mode',
+			esc_html__( 'Client Mode', 'plugiva-clientguard' ),
+			array( $this, 'render_client_mode_intro' ),
+			'plugiva-clientguard'
+		);
+
 		add_settings_section(
 			'pcgd_section_general',
 			esc_html__('General Protection', 'plugiva-clientguard'),
@@ -63,6 +72,20 @@ class PCGD_Admin_Settings {
 			esc_html__( 'Menu Visibility', 'plugiva-clientguard' ),
 			'__return_false',
 			'plugiva-clientguard'
+		);
+
+		// Client Mode is a pre-configured set of protections for client sites.
+		// @since 1.1.0
+		add_settings_field(
+			'client_mode',
+			esc_html__( 'Enable Client Mode', 'plugiva-clientguard' ),
+			array( $this, 'render_checkbox' ),
+			'plugiva-clientguard',
+			'pcgd_section_client_mode',
+			array(
+				'key'   => 'client_mode',
+				'label' => esc_html__( 'Make WordPress safe for clients with recommended settings', 'plugiva-clientguard' ),
+			)
 		);
 
 		add_settings_field(
@@ -121,12 +144,26 @@ class PCGD_Admin_Settings {
 	}
 
 	/**
+	 * Client mode intro function
+	 *
+	 * @return void
+	 * @since 1.1.0
+	 */
+	public function render_client_mode_intro() {
+		echo '<p>' . esc_html__(
+			'Client Mode applies safe defaults to reduce accidental changes and simplify the admin experience.',
+			'plugiva-clientguard'
+		) . '</p>';
+	}
+
+	/**
 	 * Default settings.
 	 *
 	 * @return array
 	 */
 	private function get_default_settings() {
 		return array(
+			'client_mode' 			=> false, // @since 1.1.0
 			'hide_menus'            => array(),
 			'lock_theme_switch'     => false,
 			'lock_plugin_install'   => false,
@@ -152,11 +189,10 @@ class PCGD_Admin_Settings {
 		$output   = array();
 
 		// Sanitize checkboxes.
-		$output['lock_theme_switch']   = ! empty( $input['lock_theme_switch'] );
-		
-		$output['lock_plugin_install'] = ! empty( $input['lock_plugin_install'] );
-
-		$output['allow_plugin_toggle'] = ! empty( $input['allow_plugin_toggle'] );
+		$output['client_mode'] 			= ! empty( $input['client_mode'] ); // @since 1.1.0
+		$output['lock_theme_switch']   	= ! empty( $input['lock_theme_switch'] );
+		$output['lock_plugin_install'] 	= ! empty( $input['lock_plugin_install'] );
+		$output['allow_plugin_toggle'] 	= ! empty( $input['allow_plugin_toggle'] );
 
 		// Sanitize protected content IDs.
 		if ( isset( $input['protected_content'] ) && is_array( $input['protected_content'] ) ) {
@@ -348,6 +384,16 @@ class PCGD_Admin_Settings {
 	 * Render settings page (placeholder).
 	 */
 	public function render_page() {
+
+		// Get current settings to check if Client Mode is active.
+		// @since 1.1.0
+		$settings = get_option( self::OPTION_NAME );
+
+		if ( ! empty( $settings['client_mode'] ) ) {
+			echo '<div class="notice notice-info"><p>' .
+				esc_html__( 'Client Mode is active. You can still adjust settings below.', 'plugiva-clientguard' ) .
+			'</p></div>';
+		}
 		?>
 		<div class="wrap">
 			<h1><?php echo esc_html__( 'Plugiva ClientGuard', 'plugiva-clientguard' ); ?></h1>

@@ -42,7 +42,15 @@ class PCGD_Admin_Plugin_Guard {
 
 		$settings = get_option( self::OPTION_NAME );
 
-		if ( empty( $settings['lock_plugin_install'] ) ) {
+		$lock_install = ! empty( $settings['lock_plugin_install'] );
+
+		// Client Mode override
+		// @since 1.1.0
+		if ( PCGD_Core_Plugin::is_client_mode() ) {
+			$lock_install = true;
+		}
+
+		if ( ! $lock_install ) {
 			return $allcaps;
 		}
 
@@ -77,10 +85,17 @@ class PCGD_Admin_Plugin_Guard {
 
 		$settings = get_option( self::OPTION_NAME );
 
-		if (
-			empty( $settings['lock_plugin_install'] ) ||
-			! empty( $settings['allow_plugin_toggle'] )
-		) {
+		$lock_install = ! empty( $settings['lock_plugin_install'] );
+		$allow_toggle = ! empty( $settings['allow_plugin_toggle'] );
+
+		// Client Mode override
+		// @since 1.1.0
+		if ( PCGD_Core_Plugin::is_client_mode() ) {
+			$lock_install = true;
+			$allow_toggle = false;
+		}
+
+		if ( ! $lock_install || $allow_toggle ) {
 			return $caps;
 		}
 

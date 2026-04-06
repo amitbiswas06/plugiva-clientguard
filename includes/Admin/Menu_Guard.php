@@ -35,12 +35,29 @@ class PCGD_Admin_Menu_Guard {
 
 		$settings = get_option( self::OPTION_NAME );
 
-		if ( empty( $settings['hide_menus'] ) || ! is_array( $settings['hide_menus'] ) ) {
+		$hidden = array();
+
+		if ( ! empty( $settings['hide_menus'] ) && is_array( $settings['hide_menus'] ) ) {
+			$hidden = $settings['hide_menus'];
+		}
+
+		// Client Mode override
+		// @since 1.1.0
+		if ( PCGD_Core_Plugin::is_client_mode() ) {
+			$hidden = array_unique( array_merge( $hidden, array(
+				'plugins.php',
+				'themes.php',
+				'tools.php',
+			) ) );
+		}
+
+		if ( empty( $hidden ) ) {
 			return;
 		}
 
-		foreach ( $settings['hide_menus'] as $menu_slug ) {
+		foreach ( $hidden as $menu_slug ) {
 			remove_menu_page( $menu_slug );
 		}
+
 	}
 }

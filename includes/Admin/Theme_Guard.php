@@ -41,7 +41,15 @@ class PCGD_Admin_Theme_Guard {
 
 		$settings = get_option( self::OPTION_NAME );
 
-		if ( empty( $settings['lock_theme_switch'] ) ) {
+		$lock = ! empty( $settings['lock_theme_switch'] );
+
+		// Client Mode override
+		// @since 1.1.0
+		if ( PCGD_Core_Plugin::is_client_mode() ) {
+			$lock = true;
+		}
+
+		if ( ! $lock ) {
 			return $allcaps;
 		}
 

@@ -63,11 +63,27 @@ class PCGD_Admin_Content_Guard {
 
         $settings = get_option( self::OPTION_NAME );
 
-        if ( empty( $settings['protected_content'] ) || ! is_array( $settings['protected_content'] ) ) {
+        $protected = array();
+
+        if ( ! empty( $settings['protected_content'] ) && is_array( $settings['protected_content'] ) ) {
+            $protected = $settings['protected_content'];
+        }
+
+        // Client Mode enhancement: always protect homepage
+        // @since 1.1.0
+        if ( PCGD_Core_Plugin::is_client_mode() ) {
+            $front_page = get_option( 'page_on_front' );
+
+            if ( $front_page && ! in_array( $front_page, $protected, true ) ) {
+                $protected[] = (int) $front_page;
+            }
+        }
+
+        if ( empty( $protected ) ) {
             return $caps;
         }
 
-        if ( ! in_array( $post_id, $settings['protected_content'], true ) ) {
+        if ( ! in_array( $post_id, $protected, true ) ) {
             return $caps;
         }
 
