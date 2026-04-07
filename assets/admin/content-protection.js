@@ -122,7 +122,6 @@
 	const controlledSettings = [
 		'lock_theme_switch',
 		'lock_plugin_install',
-		'allow_plugin_toggle'
 	];
 
 	const controlledMenus = [

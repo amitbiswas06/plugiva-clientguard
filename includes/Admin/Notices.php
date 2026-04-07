@@ -95,7 +95,11 @@ class PCGD_Admin_Notices {
 
 		} else {
 
-			if ( empty( $settings[ $notice['setting'] ] ) ) {
+			// check client mode for non-content notices
+			// @since 1.1.0 - Client Mode overrides all notices.
+			$is_client_mode = PCGD_Core_Plugin::is_client_mode();
+
+			if ( empty( $settings[ $notice['setting'] ] ) && ! $is_client_mode ) {
 				return;
 			}
 		}

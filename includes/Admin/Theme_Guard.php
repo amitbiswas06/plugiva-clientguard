@@ -53,9 +53,13 @@ class PCGD_Admin_Theme_Guard {
 			return $allcaps;
 		}
 
+		// Always block switch & delete.
+		// @since 1.1.0 - also block theme installation and editing for safety.
 		$blocked_caps = array(
 			'switch_themes',
 			'delete_themes',
+			'install_themes',
+			'edit_themes',
 		);
 
 		foreach ( $blocked_caps as $cap ) {

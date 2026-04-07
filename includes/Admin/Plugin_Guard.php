@@ -55,8 +55,12 @@ class PCGD_Admin_Plugin_Guard {
 		}
 
 		// Always block install & delete.
-		unset( $allcaps['install_plugins'] );
-		unset( $allcaps['delete_plugins'] );
+		$allcaps['install_plugins'] = false;
+		$allcaps['delete_plugins'] 	= false;
+
+		// Block plugin file editing for safety.
+		// @since 1.1.0
+		$allcaps['edit_plugins'] 	= false;
 
 		/**
 		 * IMPORTANT:
