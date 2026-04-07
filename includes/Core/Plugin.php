@@ -30,6 +30,7 @@ class PCGD_Core_Plugin {
 	private function load_dependencies() {
 
 		require_once PCGD_PLUGIN_PATH . 'includes/Core/Loader.php';
+		require_once PCGD_PLUGIN_PATH . 'includes/Core/Admin_Renderer.php'; // @since 1.1.0
 
 		require_once PCGD_PLUGIN_PATH . 'includes/Admin/Settings.php';
 		require_once PCGD_PLUGIN_PATH . 'includes/Admin/Menu_Guard.php';

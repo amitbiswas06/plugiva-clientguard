@@ -470,7 +470,19 @@ class PCGD_Admin_Settings {
 			<form method="post" action="options.php">
 				<?php
 				settings_fields( 'pcgd_settings_group' );
-				do_settings_sections( 'plugiva-clientguard' );
+
+				// Client Mode (highlighted)
+				echo '<div class="pcgd-client-mode-box">';
+				PCGD_Core_Admin_Renderer::render_section( 'plugiva-clientguard', 'pcgd_section_client_mode' );
+				echo '</div>';
+
+				// Other sections
+				echo '<div class="pcgd-general-box">';
+				PCGD_Core_Admin_Renderer::render_section( 'plugiva-clientguard', 'pcgd_section_general' );
+				PCGD_Core_Admin_Renderer::render_section( 'plugiva-clientguard', 'pcgd_section_content' );
+				PCGD_Core_Admin_Renderer::render_section( 'plugiva-clientguard', 'pcgd_section_menu' );
+				echo '</div>';
+
 				submit_button();
 				?>
 			</form>

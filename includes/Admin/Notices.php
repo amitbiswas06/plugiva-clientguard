@@ -21,6 +21,9 @@ class PCGD_Admin_Notices {
 	 */
 	public function register( $loader ) {
 		$loader->add_action( 'admin_notices', $this, 'show_notices' );
+
+		// Client Mode indicator in admin bar, @since 1.1.0
+		$loader->add_action( 'admin_bar_menu', $this, 'add_client_mode_indicator', 100 );
 	}
 
 	/**
@@ -163,4 +166,33 @@ class PCGD_Admin_Notices {
 		</div>
 		<?php
 	}
+
+	/**
+	 * Add Client Mode indicator to admin bar.
+	 *
+	 * @param WP_Admin_Bar $wp_admin_bar Admin bar instance.
+	 * @since 1.1.0
+	 */
+	public function add_client_mode_indicator( $wp_admin_bar ) {
+
+		// Only for admins
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		// Only when Client Mode is active
+		if ( ! PCGD_Core_Plugin::is_client_mode() ) {
+			return;
+		}
+
+		$wp_admin_bar->add_node( array(
+			'id'    => 'pcgd-client-mode',
+			'title' => '<span class="ab-icon dashicons-shield"></span> ' . esc_html__( 'Client Mode Active', 'plugiva-clientguard' ),
+			'href'  => admin_url( 'options-general.php?page=plugiva-clientguard' ),
+			'meta' 	=> array(
+				'title' => esc_attr__( 'Some admin actions are restricted to prevent accidental changes.', 'plugiva-clientguard' ),
+			),
+		) );
+	}
+
 }
