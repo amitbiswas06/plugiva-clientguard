@@ -1,4 +1,13 @@
 (function () {
+
+	/**
+	 * Content Protection UI
+	 * Provides an interface for searching and selecting pages to protect, with AJAX-powered search and dynamic list management.
+	 * @since 1.0.0
+	 */
+
+	"use strict";
+
 	const searchBtn = document.getElementById('pcgd-page-search-btn');
 	if (!searchBtn) return;
 
@@ -94,4 +103,60 @@
 		if (!e.target.classList.contains('pcgd-remove')) return;
 		e.target.closest('li').remove();
 	});
+})();
+
+
+(function () {
+
+	/**
+	 * Client Mode UI Control
+	 * Disables certain settings and menu options when Client Mode is active, to prevent conflicts and confusion.
+	 * @since 1.1.0
+	 */
+
+	"use strict";
+
+	const clientMode = document.querySelector('input[name="pcgd_settings[client_mode]"]');
+	if (!clientMode) return;
+
+	const controlledSettings = [
+		'lock_theme_switch',
+		'lock_plugin_install',
+		'allow_plugin_toggle'
+	];
+
+	const controlledMenus = [
+		'plugins.php',
+		'themes.php',
+		'tools.php'
+	];
+
+	function toggleClientModeUI() {
+
+		const isEnabled = clientMode.checked;
+
+		// Settings fields
+		controlledSettings.forEach(function (key) {
+			const field = document.querySelector(`input[name="pcgd_settings[${key}]"]`);
+			if (!field) return;
+
+			field.disabled = isEnabled;
+		});
+
+		// Menu checkboxes
+		const menuFields = document.querySelectorAll('input[name="pcgd_settings[hide_menus][]"]');
+
+		menuFields.forEach(function (el) {
+
+			if (controlledMenus.includes(el.value)) {
+				el.disabled = isEnabled;
+			}
+		});
+	}
+
+	clientMode.addEventListener('change', toggleClientModeUI);
+
+	// Run on load
+	toggleClientModeUI();
+
 })();

@@ -225,6 +225,27 @@ class PCGD_Admin_Settings {
 			? sanitize_text_field( $input['admin_notice_text'] )
 			: $defaults['admin_notice_text'];
 
+		// Enforce Client Mode defaults at save level
+		// @since 1.1.0
+		if ( ! empty( $output['client_mode'] ) ) {
+
+			$output['lock_theme_switch']   = true;
+			$output['lock_plugin_install'] = true;
+			$output['allow_plugin_toggle'] = false;
+
+			$client_locked = array(
+				'plugins.php',
+				'themes.php',
+				'tools.php',
+			);
+
+			$current = isset( $output['hide_menus'] ) && is_array( $output['hide_menus'] )
+				? $output['hide_menus']
+				: array();
+
+			$output['hide_menus'] = array_unique( array_merge( $current, $client_locked ) );
+		}
+
 		return $output;
 	}
 
@@ -238,6 +259,8 @@ class PCGD_Admin_Settings {
 		$disabled = false;
 		$note     = '';
 
+		$is_client_mode = PCGD_Core_Plugin::is_client_mode(); // client mode, @since 1.1.0
+
 		// Dependency: allow_plugin_toggle depends on lock_plugin_install.
 		if ( 'allow_plugin_toggle' === $key && empty( $settings['lock_plugin_install'] ) ) {
 			$disabled = true;
@@ -245,6 +268,24 @@ class PCGD_Admin_Settings {
 				'Enable "Lock Plugin Installation" to control plugin activation.',
 				'plugiva-clientguard'
 			);
+		}
+
+		// Client Mode control, @since 1.1.0
+		if ( $is_client_mode ) {
+
+			if ( in_array( $key, array(
+				'lock_theme_switch',
+				'lock_plugin_install',
+				'allow_plugin_toggle',
+			), true ) ) {
+
+				$disabled = true;
+
+				$note = esc_html__(
+					'controlled by Client Mode.',
+					'plugiva-clientguard'
+				);
+			}
 		}
 
 		?>
@@ -331,6 +372,10 @@ class PCGD_Admin_Settings {
 
 	public function render_menu_hiding() {
 
+		// Check if Client Mode is active.
+		// @since 1.1.0
+		$is_client_mode = PCGD_Core_Plugin::is_client_mode();
+
 		$settings    = get_option( self::OPTION_NAME );
 		$hidden      = ! empty( $settings['hide_menus'] )
 			? (array) $settings['hide_menus']
@@ -348,18 +393,42 @@ class PCGD_Admin_Settings {
 		echo '<fieldset>';
 
 		foreach ( $menus as $slug => $label ) {
+
+			// update: if Client Mode is active, show all options but disable those that are auto-hidden by Client Mode, 
+			// with a note, @since 1.1.0
+
+			$is_checked 	= in_array( $slug, $hidden, true );
+
+			$checked_attr  	= $is_checked ? 'checked="checked"' : '';
+			
+			$client_locked = array( 'plugins.php', 'themes.php', 'tools.php' );
+
+			$disabled_attr = ( $is_client_mode && in_array( $slug, $client_locked, true ) )
+				? 'disabled="disabled"'
+				: '';
+
+			if ( $is_client_mode && in_array( $slug, array( 'plugins.php', 'themes.php', 'tools.php' ), true ) ) {
+				$label .= ' <small style="color:#666;">(' . esc_html__( 'controlled by Client Mode', 'plugiva-clientguard' ) . ')</small>';
+			}
+
 			printf(
 				'<label style="display:block;margin-bottom:4px;">
 					<input type="checkbox"
 						name="%1$s[]"
 						value="%2$s"
-						%3$s />
-					%4$s
+						%3$s
+						%4$s />
+					%5$s
 				</label>',
 				esc_attr( self::OPTION_NAME . '[hide_menus]' ),
 				esc_attr( $slug ),
-				checked( in_array( $slug, $hidden, true ), true, false ),
-				esc_html( $label )
+				$checked_attr,
+				$disabled_attr,
+				wp_kses( $label, array(
+					'small' => array(
+						'style' => true,
+					),
+				) )
 			);
 		}
 
