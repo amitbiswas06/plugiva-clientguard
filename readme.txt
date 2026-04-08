@@ -16,7 +16,7 @@ Plugiva ClientGuard helps you safely hand over WordPress to clients without worr
 
 With one-click Client Mode, you can protect plugins, themes, and critical settings while keeping the admin area clean and usable.
 
-Instead of blocking access aggressively, ClientGuard applies smart guardrails — allowing users to work freely without breaking important parts of your site.
+Instead of blocking access aggressively, ClientGuard applies smart guardrails - allowing users to work freely without breaking important parts of your site.
 
 This plugin is ideal for:
 - Client-managed websites
@@ -43,7 +43,7 @@ Perfect for handing over websites to clients with confidence.
 * Hide selected admin menus (including ACF when active)
 * Protect important pages from editing or deletion
 * Works with ACF / SCF automatically
-* Safe defaults – nothing is locked on activation
+* Safe defaults - nothing is locked on activation
 * Clean uninstall with no leftover data
 
 == What This Plugin Is NOT ==
