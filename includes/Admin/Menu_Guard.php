@@ -21,6 +21,10 @@ class PCGD_Admin_Menu_Guard {
 	 */
 	public function register( $loader ) {
 		$loader->add_action( 'admin_menu', $this, 'hide_menus', 999 );
+
+		// Handle ACF admin visibility based on settings and Client Mode.
+		// @since 1.1.0
+		$loader->add_filter( 'acf/settings/show_admin', $this, 'handle_acf_admin_visibility' );
 	}
 
 	/**
@@ -60,4 +64,29 @@ class PCGD_Admin_Menu_Guard {
 		}
 
 	}
+
+	/**
+	 * Handle ACF admin visibility based on settings and Client Mode.
+	 *
+	 * @param bool $show Current visibility state of ACF admin.
+	 * @return bool Modified visibility state.
+	 * @since 1.1.0
+	 */
+	public function handle_acf_admin_visibility( $show ) {
+
+		$settings = get_option( 'pcgd_settings', array() );
+
+		// Hide if selected in menu hiding
+		if ( ! empty( $settings['hide_menus'] ) && in_array( 'acf', $settings['hide_menus'], true ) ) {
+			return false;
+		}
+
+		// Hide in Client Mode
+		if ( PCGD_Core_Plugin::is_client_mode() ) {
+			return false;
+		}
+
+		return $show;
+	}
+
 }

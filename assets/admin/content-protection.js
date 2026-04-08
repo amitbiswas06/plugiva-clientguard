@@ -127,7 +127,8 @@
 	const controlledMenus = [
 		'plugins.php',
 		'themes.php',
-		'tools.php'
+		'tools.php',
+		'acf',
 	];
 
 	function toggleClientModeUI() {

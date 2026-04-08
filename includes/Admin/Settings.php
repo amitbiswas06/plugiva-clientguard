@@ -239,6 +239,11 @@ class PCGD_Admin_Settings {
 				'tools.php',
 			);
 
+			// Add ACF only if active
+			if ( function_exists( 'acf' ) ) {
+				$client_locked[] = 'acf';
+			}
+
 			$current = isset( $output['hide_menus'] ) && is_array( $output['hide_menus'] )
 				? $output['hide_menus']
 				: array();
@@ -375,6 +380,7 @@ class PCGD_Admin_Settings {
 		// Check if Client Mode is active.
 		// @since 1.1.0
 		$is_client_mode = PCGD_Core_Plugin::is_client_mode();
+		$acf_active 	= function_exists( 'acf' ); // Check if ACF is active for potential future integration notes.
 
 		$settings    = get_option( self::OPTION_NAME );
 		$hidden      = ! empty( $settings['hide_menus'] )
@@ -389,6 +395,11 @@ class PCGD_Admin_Settings {
 			'tools.php'            => __( 'Tools', 'plugiva-clientguard' ),
 			'edit-comments.php'    => __( 'Comments', 'plugiva-clientguard' ),
 		);
+
+		// Add ACF only if active, @since 1.1.0
+		if ( $acf_active ) {
+			$menus['acf'] = __( 'ACF (Custom Fields)', 'plugiva-clientguard' );
+		}
 
 		echo '<fieldset>';
 
