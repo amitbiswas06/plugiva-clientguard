@@ -1,34 +1,49 @@
 === Plugiva ClientGuard ===
 Contributors: amitbiswas06
-Tags: admin lock, plugin management, theme switching, admin permissions, client safety
+Tags: admin control, hide menu, client dashboard, prevent changes, plugin management
 Requires at least: 6.0
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 1.0.1
+Stable tag: 1.1.0
 License: GPL v2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Lock plugin installation, prevent theme switching, and restrict sensitive admin changes in WordPress.
+Protect your WordPress site from accidental client changes with one-click Client Mode.
 
 == Description ==
 
-Plugiva ClientGuard gives you control over plugin installation, theme switching, plugin updates, and other sensitive admin actions in WordPress.
+Plugiva ClientGuard helps you safely hand over WordPress to clients without worrying about accidental changes.
 
-It helps site owners reduce accidental changes in the admin area without aggressively blocking access. Instead of acting like a security firewall, ClientGuard focuses on guardrails - controlled permissions and predictable workflows.
+With one-click Client Mode, you can protect plugins, themes, and critical settings while keeping the admin area clean and usable.
+
+Instead of blocking access aggressively, ClientGuard applies smart guardrails — allowing users to work freely without breaking important parts of your site.
 
 This plugin is ideal for:
 - Client-managed websites
 - Multi-admin teams
 - Sites where stability matters more than frequent changes
 
+== Client Mode ==
+
+Enable Client Mode to instantly apply safe defaults:
+
+* Prevent plugin installation and deletion
+* Disable theme switching
+* Hide sensitive admin menus
+* Protect important content from edits
+* Hide ACF (Advanced Custom Fields) admin automatically
+
+Perfect for handing over websites to clients with confidence.
+
 == Key Features ==
 
+* One-click Client Mode for instant protection
 * Guard plugin installation, deletion, and activation
-* Prevent theme switching
-* Hide selected admin menus to reduce clutter
+* Prevent theme switching and editing
+* Hide selected admin menus (including ACF when active)
 * Protect important pages from editing or deletion
-* Safe defaults - nothing is locked on activation
-* Direct URLs remain accessible (no hard lockouts)
+* Works with ACF / SCF automatically
+* Safe defaults – nothing is locked on activation
 * Clean uninstall with no leftover data
 
 == What This Plugin Is NOT ==
@@ -57,6 +72,9 @@ No. This plugin is designed to prevent accidental changes, not to secure WordPre
 = Can administrators still access hidden pages via URL? =
 Yes. Menu hiding is for visibility only. Action blocking is handled separately where needed.
 
+= Does it work with ACF (Advanced Custom Fields)? =
+Yes. ClientGuard can hide the ACF admin panel automatically when Client Mode is enabled, helping prevent accidental changes to custom fields.
+
 = What happens on uninstall? =
 All plugin settings are removed cleanly when the plugin is uninstalled.
 
@@ -72,6 +90,13 @@ Plugiva ClientGuard provides filter hooks that allow developers to customize cer
 
 == Changelog ==
 
+= 1.1.0 =
+* Added Client Mode for one-click admin protection
+* Improved menu control and UI behavior
+* Added ACF integration (auto-hide in Client Mode)
+* Enhanced capability handling for plugins and themes
+* Improved admin experience with clearer controls
+
 = 1.0.1 =
 * Refined plugin description and tags for improved clarity and discoverability.
 
@@ -79,6 +104,9 @@ Plugiva ClientGuard provides filter hooks that allow developers to customize cer
 * Initial release.
 
 == Upgrade Notice ==
+
+= 1.1.0 =
+Introduces Client Mode for one-click protection and adds ACF integration for safer client-managed sites.
 
 = 1.0.1 =
 Refined description and tag improvements.

@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: Plugiva ClientGuard
- * Description: Lock plugin installation, prevent theme switching, and restrict sensitive admin changes in WordPress.
+ * Description: Protect your WordPress site from accidental client changes with one-click Client Mode.
  * Version:     1.1.0
  * Author:      Plugiva
  * Author URI:  https://plugiva.com
