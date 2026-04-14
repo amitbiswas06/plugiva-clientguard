@@ -1,4 +1,4 @@
-=== Plugiva ClientGuard ===
+=== Plugiva ClientGuard - Client Proofing & Admin Safety ===
 Contributors: amitbiswas06
 Tags: admin control, hide menu, client dashboard, prevent changes, plugin management
 Requires at least: 6.0
@@ -8,7 +8,7 @@ Stable tag: 1.1.0
 License: GPL v2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Protect your WordPress site from accidental client changes with one-click Client Mode.
+Prevent unwanted WordPress changes with one-click Client Mode.
 
 == Description ==
 
