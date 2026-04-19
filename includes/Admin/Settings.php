@@ -124,6 +124,20 @@ class PCGD_Admin_Settings {
 			)
 		);
 
+		// protect site URLs to prevent lockout
+		// @since 1.2.0
+		add_settings_field(
+			'protect_site_urls',
+			esc_html__( 'Protect Site URLs', 'plugiva-clientguard' ),
+			array( $this, 'render_checkbox' ),
+			'plugiva-clientguard',
+			'pcgd_section_general',
+			array(
+				'key'   => 'protect_site_urls',
+				'label' => esc_html__( 'Prevent changes to WordPress Address and Site Address to avoid login issues or site breakage.', 'plugiva-clientguard' ),
+			)
+		);
+
 		add_settings_field(
 			'protected_content',
 			esc_html__( 'Protected Content', 'plugiva-clientguard' ),
@@ -168,6 +182,7 @@ class PCGD_Admin_Settings {
 			'lock_theme_switch'     => false,
 			'lock_plugin_install'   => false,
 			'allow_plugin_toggle'   => true,
+			'protect_site_urls'     => false, // @since 1.2.0
 			'protected_content'     => array(),
 			'admin_notice_text'     => esc_html__(
 				'Some site settings are managed to keep things running smoothly.',
@@ -193,6 +208,7 @@ class PCGD_Admin_Settings {
 		$output['lock_theme_switch']   	= ! empty( $input['lock_theme_switch'] );
 		$output['lock_plugin_install'] 	= ! empty( $input['lock_plugin_install'] );
 		$output['allow_plugin_toggle'] 	= ! empty( $input['allow_plugin_toggle'] );
+		$output['protect_site_urls'] 	= ! empty( $input['protect_site_urls'] ); // @since 1.2.0
 
 		// Sanitize protected content IDs.
 		if ( isset( $input['protected_content'] ) && is_array( $input['protected_content'] ) ) {
@@ -229,10 +245,12 @@ class PCGD_Admin_Settings {
 		// @since 1.1.0
 		if ( ! empty( $output['client_mode'] ) ) {
 
-			$output['lock_theme_switch']   = true;
-			$output['lock_plugin_install'] = true;
-			$output['allow_plugin_toggle'] = false;
+			$output['lock_theme_switch']   	= true;
+			$output['lock_plugin_install'] 	= true;
+			$output['allow_plugin_toggle'] 	= false;
+			$output['protect_site_urls'] 	= true; // @since 1.2.0
 
+			// For menu hiding
 			$client_locked = array(
 				'plugins.php',
 				'themes.php',
@@ -282,6 +300,7 @@ class PCGD_Admin_Settings {
 				'lock_theme_switch',
 				'lock_plugin_install',
 				'allow_plugin_toggle',
+				'protect_site_urls', // @since 1.2.0
 			), true ) ) {
 
 				$disabled = true;

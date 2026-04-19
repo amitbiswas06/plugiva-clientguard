@@ -122,6 +122,7 @@
 	const controlledSettings = [
 		'lock_theme_switch',
 		'lock_plugin_install',
+		'protect_site_urls', // @since 1.2.0
 	];
 
 	const controlledMenus = [

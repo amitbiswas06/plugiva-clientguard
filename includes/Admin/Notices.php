@@ -61,6 +61,9 @@ class PCGD_Admin_Notices {
 				(int) $screen->post_id
 			);
 		}
+
+		// @since 1.2.0 - new notice for site URL protection.
+		$this->maybe_render_notice( 'settings_siteurl', $screen, $settings );
 	}
 
 	/**
@@ -148,6 +151,15 @@ class PCGD_Admin_Notices {
 				'setting' => 'protected_content',
 				'message' => esc_html__(
 					'This content is protected to prevent accidental changes.',
+					'plugiva-clientguard'
+				),
+			),
+			// @since 1.2.0 - new notice for site URL protection.
+			'settings_siteurl' => array(
+				'screens' => array( 'options-general' ),
+				'setting' => 'protect_site_urls',
+				'message' => esc_html__(
+					'Site URLs are protected to prevent accidental changes that could break login or site access.',
 					'plugiva-clientguard'
 				),
 			),

@@ -37,6 +37,7 @@ class PCGD_Core_Plugin {
 		require_once PCGD_PLUGIN_PATH . 'includes/Admin/Theme_Guard.php';
 		require_once PCGD_PLUGIN_PATH . 'includes/Admin/Plugin_Guard.php';
 		require_once PCGD_PLUGIN_PATH . 'includes/Admin/Content_Guard.php';
+		require_once PCGD_PLUGIN_PATH . 'includes/Admin/Settings_Guard.php'; // @since 1.2.0
 		require_once PCGD_PLUGIN_PATH . 'includes/Admin/Notices.php';
 		require_once PCGD_PLUGIN_PATH . 'includes/Admin/Ajax.php';
 		require_once PCGD_PLUGIN_PATH . 'includes/Admin/Assets.php';
@@ -74,6 +75,11 @@ class PCGD_Core_Plugin {
 		// Content Guard.
 		$content_guard = new PCGD_Admin_Content_Guard();
 		$content_guard->register( $this->loader );
+
+		// Settings Guard.
+		// @since 1.2.0 - new guard for site URL protection and future settings-related protections.
+		$settings_guard = new PCGD_Admin_Settings_Guard();
+		$settings_guard->register( $this->loader );
 
 		// Admin Notices.
 		$notices = new PCGD_Admin_Notices();
