@@ -82,9 +82,10 @@ All plugin settings are removed cleanly when the plugin is uninstalled.
 
 == Screenshots ==
 
-1. ClientGuard settings page.
-2. Content Protection interface.
-3. Menu Visibility options.
+1. Client Mode settings for WordPress admin protection.
+2. General Protection settings for plugins, themes, and critical site settings.
+3. Content Protection interface for protecting selected pages.
+4. Menu Visibility options for hiding admin menus.
 
 == Developer Hooks ==
 
