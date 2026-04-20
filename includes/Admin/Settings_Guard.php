@@ -26,6 +26,24 @@ class PCGD_Admin_Settings_Guard {
         $loader->add_filter( 'pre_update_option_siteurl', $this, 'block_siteurl_update', 10, 2 );
 
         $loader->add_filter( 'pre_update_option_home', $this, 'block_home_update', 10, 2 );
+
+        $loader->add_action( 'load-options-permalink.php', $this, 'block_permalink_page' );
+    }
+
+    /**
+     * Block access to permalink settings in Client Mode.
+     *
+     * @return void
+     */
+    public function block_permalink_page() {
+
+        if ( ! PCGD_Core_Plugin::is_client_mode() ) {
+            return;
+        }
+
+        // Redirect to dashboard
+        wp_safe_redirect( admin_url() );
+        exit;
     }
 
     /**

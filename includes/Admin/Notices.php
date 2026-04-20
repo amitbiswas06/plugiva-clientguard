@@ -64,6 +64,7 @@ class PCGD_Admin_Notices {
 
 		// @since 1.2.0 - new notice for site URL protection.
 		$this->maybe_render_notice( 'settings_siteurl', $screen, $settings );
+		$this->maybe_render_notice( 'permalink', $screen, $settings );
 	}
 
 	/**
@@ -160,6 +161,14 @@ class PCGD_Admin_Notices {
 				'setting' => 'protect_site_urls',
 				'message' => esc_html__(
 					'Site URLs are protected to prevent accidental changes that could break login or site access.',
+					'plugiva-clientguard'
+				),
+			),
+			'permalink' => array(
+				'screens' => array( 'dashboard' ),
+				'setting' => 'client_mode',
+				'message' => esc_html__(
+					'Permalink settings are restricted in Client Mode to prevent site routing issues.',
 					'plugiva-clientguard'
 				),
 			),

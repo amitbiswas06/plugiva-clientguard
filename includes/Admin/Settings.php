@@ -134,7 +134,7 @@ class PCGD_Admin_Settings {
 			'pcgd_section_general',
 			array(
 				'key'   => 'protect_site_urls',
-				'label' => esc_html__( 'Prevent changes to WordPress Address and Site Address to avoid login issues or site breakage.', 'plugiva-clientguard' ),
+				'label' => __( 'Prevent <h2>changes</h2> to <em>WordPress Address</em> and <em>Site Address</em> to avoid login issues or site breakage.', 'plugiva-clientguard' ),
 			)
 		);
 
@@ -319,7 +319,7 @@ class PCGD_Admin_Settings {
 				value="1"
 				<?php checked( $value ); ?>
 				<?php disabled( $disabled ); ?> />
-			<?php echo esc_html( $label ); ?>
+			<?php echo wp_kses( $label, array( 'strong' => array(), 'em' => array() ) ); ?>
 		</label>
 
 		<?php if ( $note ) : ?>
@@ -437,7 +437,7 @@ class PCGD_Admin_Settings {
 				? 'disabled="disabled"'
 				: '';
 
-			if ( $is_client_mode && in_array( $slug, array( 'plugins.php', 'themes.php', 'tools.php' ), true ) ) {
+			if ( $is_client_mode && in_array( $slug, array( 'plugins.php', 'themes.php', 'tools.php', 'acf' ), true ) ) {
 				$label .= ' <small style="color:#666;">(' . esc_html__( 'controlled by Client Mode', 'plugiva-clientguard' ) . ')</small>';
 			}
 
