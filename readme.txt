@@ -4,11 +4,11 @@ Tags: admin control, hide menu, client dashboard, prevent changes, plugin manage
 Requires at least: 6.0
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 1.1.0
+Stable tag: 1.2.0
 License: GPL v2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Prevent unwanted WordPress changes with one-click Client Mode.
+Prevent unwanted WordPress changes and protect critical settings with one-click Client Mode.
 
 == Description ==
 
@@ -31,6 +31,7 @@ Enable Client Mode to instantly apply safe defaults:
 * Disable theme switching
 * Hide sensitive admin menus
 * Protect important content from edits
+* Protect critical settings like Site URL and Permalinks
 * Hide ACF (Advanced Custom Fields) admin automatically
 
 Perfect for handing over websites to clients with confidence.
@@ -42,6 +43,7 @@ Perfect for handing over websites to clients with confidence.
 * Prevent theme switching and editing
 * Hide selected admin menus (including ACF when active)
 * Protect important pages from editing or deletion
+* Protect critical WordPress settings (Site URL, Permalinks)
 * Works with ACF / SCF automatically
 * Safe defaults - nothing is locked on activation
 * Clean uninstall with no leftover data
@@ -90,6 +92,11 @@ Plugiva ClientGuard provides filter hooks that allow developers to customize cer
 
 == Changelog ==
 
+= 1.2.0 =
+* Added Site URL protection to prevent login and access issues
+* Added Permalink settings guard in Client Mode
+* Improved admin safety with critical settings protection
+
 = 1.1.0 =
 * Added Client Mode for one-click admin protection
 * Improved menu control and UI behavior
@@ -104,6 +111,9 @@ Plugiva ClientGuard provides filter hooks that allow developers to customize cer
 * Initial release.
 
 == Upgrade Notice ==
+
+= 1.2.0 =
+Adds protection for critical WordPress settings like Site URL and Permalinks to prevent accidental site breakage.
 
 = 1.1.0 =
 Introduces Client Mode for one-click protection and adds ACF integration for safer client-managed sites.
