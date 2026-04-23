@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Plugiva ClientGuard
  * Description: Prevent unwanted WordPress changes and protect critical settings with one-click Client Mode.
- * Version:     1.2.0
+ * Version:     1.3.0
  * Author:      Plugiva
  * Author URI:  https://plugiva.com
  * License:     GPL v2 or later
@@ -18,7 +18,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Plugin version.
  */
-define( 'PCGD_VERSION', '1.2.0' );
+define( 'PCGD_VERSION', '1.3.0' );
 
 /**
  * Plugin file.

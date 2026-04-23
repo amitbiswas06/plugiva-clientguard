@@ -38,6 +38,7 @@ class PCGD_Core_Plugin {
 		require_once PCGD_PLUGIN_PATH . 'includes/Admin/Plugin_Guard.php';
 		require_once PCGD_PLUGIN_PATH . 'includes/Admin/Content_Guard.php';
 		require_once PCGD_PLUGIN_PATH . 'includes/Admin/Settings_Guard.php'; // @since 1.2.0
+		require_once PCGD_PLUGIN_PATH . 'includes/Admin/Settings_State.php'; // @since 1.3.0
 		require_once PCGD_PLUGIN_PATH . 'includes/Admin/Notices.php';
 		require_once PCGD_PLUGIN_PATH . 'includes/Admin/Ajax.php';
 		require_once PCGD_PLUGIN_PATH . 'includes/Admin/Assets.php';
@@ -103,12 +104,26 @@ class PCGD_Core_Plugin {
 	}
 
 	/**
-	 * Check if client mode is active
+	 * Check if Client Mode is active.
 	 *
-	 * @return boolean
+	 * Client Mode can be enabled via:
+	 * 1. Plugin settings (database)
+	 * 2. Hard lock via wp-config.php constant:
+	 *    define( 'PCGD_LOCK_CLIENT_MODE', true );
+	 *
+	 * When the constant is defined and true, Client Mode is forced ON
+	 * and cannot be disabled from the admin UI.
+	 *
+	 * @return bool True if Client Mode is active.
 	 * @since 1.1.0
 	 */
 	public static function is_client_mode() {
+
+		// Hard lock via config (highest priority)
+		// @since v1.3.0 - new constant to lock Client Mode on for critical use cases.
+		if ( defined( 'PCGD_LOCK_CLIENT_MODE' ) && PCGD_LOCK_CLIENT_MODE ) {
+			return true;
+		}
 
 		$settings = get_option( 'pcgd_settings', array() );
 

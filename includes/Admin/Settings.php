@@ -204,7 +204,13 @@ class PCGD_Admin_Settings {
 		$output   = array();
 
 		// Sanitize checkboxes.
-		$output['client_mode'] 			= ! empty( $input['client_mode'] ); // @since 1.1.0
+		$output['client_mode'] = ! empty( $input['client_mode'] ); // @since 1.1.0
+
+		// Hard lock via config - @since 1.3.0
+		if ( defined( 'PCGD_LOCK_CLIENT_MODE' ) && PCGD_LOCK_CLIENT_MODE ) {
+			$output['client_mode'] = true;
+		}
+
 		$output['lock_theme_switch']   	= ! empty( $input['lock_theme_switch'] );
 		$output['lock_plugin_install'] 	= ! empty( $input['lock_plugin_install'] );
 		$output['allow_plugin_toggle'] 	= ! empty( $input['allow_plugin_toggle'] );
@@ -274,43 +280,16 @@ class PCGD_Admin_Settings {
 
 	public function render_checkbox( $args ) {
 
-		$settings = get_option( self::OPTION_NAME );
+		$settings = get_option( self::OPTION_NAME, array() );
 		$key      = $args['key'];
 		$label    = $args['label'];
 
-		$value    = ! empty( $settings[ $key ] );
-		$disabled = false;
-		$note     = '';
-
-		$is_client_mode = PCGD_Core_Plugin::is_client_mode(); // client mode, @since 1.1.0
-
-		// Dependency: allow_plugin_toggle depends on lock_plugin_install.
-		if ( 'allow_plugin_toggle' === $key && empty( $settings['lock_plugin_install'] ) ) {
-			$disabled = true;
-			$note     = esc_html__(
-				'Enable "Lock Plugin Installation" to control plugin activation.',
-				'plugiva-clientguard'
-			);
-		}
-
-		// Client Mode control, @since 1.1.0
-		if ( $is_client_mode ) {
-
-			if ( in_array( $key, array(
-				'lock_theme_switch',
-				'lock_plugin_install',
-				'allow_plugin_toggle',
-				'protect_site_urls', // @since 1.2.0
-			), true ) ) {
-
-				$disabled = true;
-
-				$note = esc_html__(
-					'controlled by Client Mode.',
-					'plugiva-clientguard'
-				);
-			}
-		}
+		// Get effective state considering Client Mode and dependencies.
+		// @since 1.3.0 - moved logic to separate class for better organization and future extensibility.
+		$state 		= PCGD_Admin_Settings_State::get( $key, $settings );
+		$value    	= $state['value'];
+		$disabled 	= $state['disabled'];
+		$note     	= $state['note'];
 
 		?>
 		<label>
@@ -396,15 +375,9 @@ class PCGD_Admin_Settings {
 
 	public function render_menu_hiding() {
 
-		// Check if Client Mode is active.
-		// @since 1.1.0
-		$is_client_mode = PCGD_Core_Plugin::is_client_mode();
-		$acf_active 	= function_exists( 'acf' ); // Check if ACF is active for potential future integration notes.
+		$acf_active = function_exists( 'acf' ); // Check if ACF is active for potential future integration notes.
 
-		$settings    = get_option( self::OPTION_NAME );
-		$hidden      = ! empty( $settings['hide_menus'] )
-			? (array) $settings['hide_menus']
-			: array();
+		$settings 	= get_option( self::OPTION_NAME, array() );
 
 		$menus = array(
 			'plugins.php'          => __( 'Plugins', 'plugiva-clientguard' ),
@@ -424,21 +397,16 @@ class PCGD_Admin_Settings {
 
 		foreach ( $menus as $slug => $label ) {
 
-			// update: if Client Mode is active, show all options but disable those that are auto-hidden by Client Mode, 
-			// with a note, @since 1.1.0
+			// Get effective state considering Client Mode and dependencies.
+			// @since 1.3.0 - moved logic to separate class for better organization and future extensibility.
+			$state 			= PCGD_Admin_Settings_State::get_menu_state( $slug, $settings );
+			$checked_attr 	= checked( $state['checked'], true, false );
+			$disabled_attr 	= disabled( $state['disabled'], true, false );
 
-			$is_checked 	= in_array( $slug, $hidden, true );
+			$display_label 	= $label;
 
-			$checked_attr  	= $is_checked ? 'checked="checked"' : '';
-			
-			$client_locked = array( 'plugins.php', 'themes.php', 'tools.php' );
-
-			$disabled_attr = ( $is_client_mode && in_array( $slug, $client_locked, true ) )
-				? 'disabled="disabled"'
-				: '';
-
-			if ( $is_client_mode && in_array( $slug, array( 'plugins.php', 'themes.php', 'tools.php', 'acf' ), true ) ) {
-				$label .= ' <small style="color:#666;">(' . esc_html__( 'controlled by Client Mode', 'plugiva-clientguard' ) . ')</small>';
+			if ( ! empty( $state['note'] ) ) {
+				$display_label .= ' <small style="color:#666;">[' . esc_html( $state['note'] ) . ']</small>';
 			}
 
 			printf(
@@ -454,9 +422,9 @@ class PCGD_Admin_Settings {
 				esc_attr( $slug ),
 				$checked_attr,
 				$disabled_attr,
-				wp_kses( $label, array(
+				wp_kses( $display_label, array(
 					'small' => array(
-						'style' => true,
+						'style' => array(),
 					),
 				) )
 			);
