@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: Plugiva ClientGuard
- * Description: Prevent unwanted WordPress changes and protect critical settings with one-click Client Mode.
+ * Description: Prevent unwanted WordPress changes and protect critical site settings with Client Mode and optional configuration lock.
  * Version:     1.3.0
  * Author:      Plugiva
  * Author URI:  https://plugiva.com

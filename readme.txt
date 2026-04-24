@@ -1,14 +1,14 @@
-=== Plugiva ClientGuard - Client Proofing & Admin Safety ===
+=== Plugiva ClientGuard - Safe WordPress for Clients ===
 Contributors: amitbiswas06
-Tags: admin control, hide menu, client dashboard, prevent changes, plugin management
+Tags: admin control, hide menu, admin dashboard, restrict access, prevent changes
 Requires at least: 6.0
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 1.2.0
+Stable tag: 1.3.0
 License: GPL v2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Prevent unwanted WordPress changes and protect critical settings with one-click Client Mode.
+Prevent unwanted WordPress changes and protect critical site settings with Client Mode and optional configuration lock.
 
 == Description ==
 
@@ -16,7 +16,15 @@ Plugiva ClientGuard helps you safely hand over WordPress to clients without worr
 
 With one-click Client Mode, you can protect plugins, themes, and critical settings while keeping the admin area clean and usable.
 
-Instead of blocking access aggressively, ClientGuard applies smart guardrails - allowing users to work freely without breaking important parts of your site.
+You can also lock Client Mode via configuration to prevent it from being disabled from the admin interface:
+
+`define( 'PCGD_LOCK_CLIENT_MODE', true );`
+
+This can be added in wp-config.php or defined programmatically in custom code.
+
+When enabled, Client Mode is forced on and cannot be turned off from the dashboard, ensuring consistent protection.
+
+Instead of blocking access aggressively, ClientGuard applies smart guardrails, allowing users to work freely without breaking important parts of your site.
 
 This plugin is ideal for:
 - Client-managed websites
@@ -44,7 +52,7 @@ Perfect for handing over websites to clients with confidence.
 * Hide selected admin menus (including ACF when active)
 * Protect important pages from editing or deletion
 * Protect critical WordPress settings (Site URL, Permalinks)
-* Works with ACF / SCF automatically
+* Works with ACF (Advanced Custom Fields) automatically
 * Safe defaults - nothing is locked on activation
 * Clean uninstall with no leftover data
 
@@ -89,9 +97,14 @@ All plugin settings are removed cleanly when the plugin is uninstalled.
 
 == Developer Hooks ==
 
-Plugiva ClientGuard provides filter hooks that allow developers to customize certain behaviors, including admin notice messages, without modifying plugin code.
+Plugiva ClientGuard includes developer-friendly hooks for customizing certain behaviors, such as modifying admin notice messages. Additional hooks may be introduced in future versions.
 
 == Changelog ==
+
+= 1.3.0 =
+- Add configuration-based lock for Client Mode via `PCGD_LOCK_CLIENT_MODE`
+- Introduce centralized settings state resolver for consistent UI behavior
+- Improve settings and menu UI consistency under Client Mode
 
 = 1.2.0 =
 * Added Site URL protection to prevent login and access issues
@@ -112,6 +125,9 @@ Plugiva ClientGuard provides filter hooks that allow developers to customize cer
 * Initial release.
 
 == Upgrade Notice ==
+
+= 1.3.0 =
+Adds a configuration lock for Client Mode to prevent accidental disabling.
 
 = 1.2.0 =
 Adds protection for critical WordPress settings like Site URL and Permalinks to prevent accidental site breakage.
