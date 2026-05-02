@@ -448,19 +448,9 @@ class PCGD_Admin_Settings {
 
 
 	/**
-	 * Render settings page (placeholder).
+	 * Render settings page.
 	 */
 	public function render_page() {
-
-		// Get current settings to check if Client Mode is active.
-		// @since 1.1.0
-		$settings = get_option( self::OPTION_NAME );
-
-		if ( ! empty( $settings['client_mode'] ) ) {
-			echo '<div class="notice notice-info"><p>' .
-				esc_html__( 'Client Mode is active. You can still adjust settings below.', 'plugiva-clientguard' ) .
-			'</p></div>';
-		}
 		?>
 		<div class="wrap">
 			<h1><?php echo esc_html__( 'Plugiva ClientGuard', 'plugiva-clientguard' ); ?></h1>
