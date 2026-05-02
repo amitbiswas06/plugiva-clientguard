@@ -84,7 +84,7 @@ class PCGD_Admin_Settings {
 			'pcgd_section_client_mode',
 			array(
 				'key'   => 'client_mode',
-				'label' => esc_html__( 'Make WordPress safe for clients with recommended settings', 'plugiva-clientguard' ),
+				'label' => esc_html__( 'Simplify the admin with safe, recommended settings', 'plugiva-clientguard' ),
 			)
 		);
 
@@ -96,7 +96,7 @@ class PCGD_Admin_Settings {
 			'pcgd_section_general',
 			array(
 				'key'   => 'lock_theme_switch',
-				'label' => esc_html__('Prevent switching or deleting themes', 'plugiva-clientguard'),
+				'label' => esc_html__('Keep the active theme in place to maintain site layout', 'plugiva-clientguard'),
 			)
 		);
 
@@ -108,7 +108,7 @@ class PCGD_Admin_Settings {
 			'pcgd_section_general',
 			array(
 				'key'   => 'lock_plugin_install',
-				'label' => esc_html__('Prevent installing or deleting plugins', 'plugiva-clientguard'),
+				'label' => esc_html__('Prevent changes to installed plugins to keep the site stable', 'plugiva-clientguard'),
 			)
 		);
 
@@ -120,7 +120,7 @@ class PCGD_Admin_Settings {
 			'pcgd_section_general',
 			array(
 				'key'   => 'allow_plugin_toggle',
-				'label' => esc_html__('Allow activating or deactivating plugins', 'plugiva-clientguard'),
+				'label' => esc_html__('Allow activating or deactivating installed plugins', 'plugiva-clientguard'),
 			)
 		);
 
@@ -134,7 +134,7 @@ class PCGD_Admin_Settings {
 			'pcgd_section_general',
 			array(
 				'key'   => 'protect_site_urls',
-				'label' => __( 'Prevent <h2>changes</h2> to <em>WordPress Address</em> and <em>Site Address</em> to avoid login issues or site breakage.', 'plugiva-clientguard' ),
+				'label' => __( 'Keep <em>WordPress Address</em> and <em>Site Address</em> stable to avoid login or site access issues.', 'plugiva-clientguard' ),
 			)
 		);
 
@@ -165,7 +165,7 @@ class PCGD_Admin_Settings {
 	 */
 	public function render_client_mode_intro() {
 		echo '<p>' . esc_html__(
-			'Client Mode applies safe defaults to reduce accidental changes and simplify the admin experience.',
+			'Client Mode applies safe defaults to simplify the admin and help prevent unintended changes.',
 			'plugiva-clientguard'
 		) . '</p>';
 	}
@@ -364,9 +364,9 @@ class PCGD_Admin_Settings {
 			</ul>
 
 			<p class="description">
-				<?php esc_html_e( 'Selected pages will be protected from editing and deletion.', 'plugiva-clientguard' ); ?>
+				<?php esc_html_e( 'Selected pages are kept safe from editing or deletion.', 'plugiva-clientguard' ); ?>
 				<br />
-				<small><?php esc_html_e( 'Post protection is available in "Plugiva ClientGuard Pro."', 'plugiva-clientguard' ); ?></small>
+				<small><?php esc_html_e( 'Post safety is available in Plugiva ClientGuard Pro.', 'plugiva-clientguard' ); ?></small>
 			</p>
 
 		</div>
@@ -435,11 +435,11 @@ class PCGD_Admin_Settings {
 		printf(
 			'<p class="description">%s<br><small>%s</small></p>',
 			esc_html__(
-				'Hidden menus are removed from the sidebar but remain accessible via direct links.',
+				'Hidden menus are removed to keep the admin simple and focused.',
 				'plugiva-clientguard'
 			),
 			esc_html__(
-				'Additional menu controls, including sub-menu items, are available in "Plugiva ClientGuard Pro."',
+				'More advanced menu controls are available in Plugiva ClientGuard Pro.',
 				'plugiva-clientguard'
 			)
 		);

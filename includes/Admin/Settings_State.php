@@ -36,7 +36,7 @@ class PCGD_Admin_Settings_State {
                 return array(
                     'value'    => true,
                     'disabled' => true,
-                    'note'     => esc_html__( 'locked via configuration.', 'plugiva-clientguard' ),
+                    'note'     => esc_html__( 'set via configuration (not editable here).', 'plugiva-clientguard' ),
                 );
             }
 
@@ -50,7 +50,7 @@ class PCGD_Admin_Settings_State {
                 return array(
                     'value'    => ( 'allow_plugin_toggle' === $key ) ? false : true,
                     'disabled' => true,
-                    'note'     => esc_html__( 'controlled by Client Mode (locked via configuration).', 'plugiva-clientguard' ),
+                    'note'     => esc_html__( 'managed by Client Mode.', 'plugiva-clientguard' ),
                 );
             }
         }
@@ -68,7 +68,7 @@ class PCGD_Admin_Settings_State {
                 return array(
                     'value'    => ( 'allow_plugin_toggle' === $key ) ? false : true,
                     'disabled' => true,
-                    'note'     => esc_html__( 'controlled by Client Mode.', 'plugiva-clientguard' ),
+                    'note'     => esc_html__( 'managed by Client Mode.', 'plugiva-clientguard' ),
                 );
             }
         }
@@ -79,7 +79,7 @@ class PCGD_Admin_Settings_State {
                 'value'    => $value,
                 'disabled' => true,
                 'note'     => esc_html__(
-                    'Enable "Lock Plugin Installation" to control plugin activation.',
+                    'Enable "Lock Plugin Installation" to manage plugin changes safely.',
                     'plugiva-clientguard'
                 ),
             );
@@ -123,7 +123,7 @@ class PCGD_Admin_Settings_State {
             return array(
                 'checked'  => true,
                 'disabled' => true,
-                'note'     => esc_html__( 'controlled by Client Mode (locked via configuration).', 'plugiva-clientguard' ),
+                'note'     => esc_html__( 'managed by Client Mode.', 'plugiva-clientguard' ),
             );
         }
 
@@ -132,7 +132,7 @@ class PCGD_Admin_Settings_State {
             return array(
                 'checked'  => true,
                 'disabled' => true,
-                'note'     => esc_html__( 'controlled by Client Mode.', 'plugiva-clientguard' ),
+                'note'     => esc_html__( 'managed by Client Mode.', 'plugiva-clientguard' ),
             );
         }
 

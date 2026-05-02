@@ -53,7 +53,7 @@ class PCGD_Admin_Notices {
 			'title' => '<span class="ab-icon dashicons-shield"></span> ' . esc_html__( 'Client Mode Active', 'plugiva-clientguard' ),
 			'href'  => admin_url( 'options-general.php?page=plugiva-clientguard' ),
 			'meta' 	=> array(
-				'title' => esc_attr__( 'Some admin actions are restricted to prevent accidental changes.', 'plugiva-clientguard' ),
+				'title' => esc_attr__( 'Admin is simplified to help prevent unintended changes.', 'plugiva-clientguard' ),
 			),
 		) );
 	}
