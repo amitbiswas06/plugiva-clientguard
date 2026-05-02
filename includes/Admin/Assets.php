@@ -58,7 +58,7 @@ class PCGD_Admin_Assets {
 
 		// Load Settings Guard script on General Settings page
 		// @since 1.2.0 - new script for site URL protection and future settings-related protections.
-		if ( 'options-general.php' === $hook ) {
+		/* if ( 'options-general.php' === $hook ) {
 
 			wp_enqueue_script(
 				'pcgd-settings-guard',
@@ -77,7 +77,7 @@ class PCGD_Admin_Assets {
 					'protectSiteUrls' => $settings_guard->is_site_url_protected(),
 				)
 			);
-		}
+		} */
 
 	}
 	

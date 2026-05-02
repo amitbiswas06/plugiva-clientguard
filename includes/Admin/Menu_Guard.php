@@ -55,6 +55,12 @@ class PCGD_Admin_Menu_Guard {
 			) ) );
 		}
 
+		// Remove submenu (run independently)
+		// @since 1.4.0
+		if ( PCGD_Core_Plugin::is_client_mode() ) {
+			remove_submenu_page( 'options-general.php', 'options-permalink.php' );
+		}
+
 		if ( empty( $hidden ) ) {
 			return;
 		}

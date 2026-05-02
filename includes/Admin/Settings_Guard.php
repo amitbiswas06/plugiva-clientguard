@@ -28,6 +28,8 @@ class PCGD_Admin_Settings_Guard {
         $loader->add_filter( 'pre_update_option_home', $this, 'block_home_update', 10, 2 );
 
         $loader->add_action( 'load-options-permalink.php', $this, 'block_permalink_page' );
+
+        $loader->add_action( 'admin_head', $this, 'hide_site_url_fields_css' ); // @since 1.4.0
     }
 
     /**
@@ -104,6 +106,34 @@ class PCGD_Admin_Settings_Guard {
         }
 
         return $new_value;
+    }
+
+    /**
+     * Hide site URL fields via CSS when protected.
+     *
+     * @return void
+     * @since 1.4.0
+     */
+    public function hide_site_url_fields_css() {
+
+        // Only when protection is active
+        if ( ! $this->is_site_url_protected() ) {
+            return;
+        }
+
+        // Strict screen targeting
+        $screen = get_current_screen();
+        if ( ! $screen || 'options-general' !== $screen->id ) {
+            return;
+        }
+
+        echo '<style>
+            /* Hide Site URL fields (ClientGuard) */
+            tr:has(#siteurl),
+            tr:has(#home) {
+                display: none !important;
+            }
+        </style>';
     }
 
 }
