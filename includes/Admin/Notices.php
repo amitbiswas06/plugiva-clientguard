@@ -140,8 +140,17 @@ class PCGD_Admin_Notices {
 			return;
 		}
 
-		$enable_url  = add_query_arg( 'pcgd_enable_client_mode', '1' );
-		$dismiss_url = add_query_arg( 'pcgd_dismiss_client_mode_notice', '1' );
+		// Enable URL: points to current page with nonce to trigger enabling Client Mode in handler.
+		$enable_url = wp_nonce_url(
+			add_query_arg( 'pcgd_enable_client_mode', '1' ),
+			'pcgd_enable_client_mode'
+		);
+
+		// Dismiss URL: just a nonce link that triggers dismissal in handler, no special page needed.
+		$dismiss_url = wp_nonce_url(
+			add_query_arg( 'pcgd_dismiss_client_mode_notice', '1' ),
+			'pcgd_dismiss_client_mode_notice'
+		);
 		?>
 		<div class="notice notice-info">
 			<p>
@@ -178,12 +187,14 @@ class PCGD_Admin_Notices {
 
 		if ( '1' === $enable ) {
 
+			check_admin_referer( 'pcgd_enable_client_mode' );
+
 			$settings = get_option( 'pcgd_settings', array() );
 			$settings['client_mode'] = true;
 
 			update_option( 'pcgd_settings', $settings );
 
-			// Redirect to settings page (important UX decision)
+			// Redirect to settings page
 			wp_safe_redirect( admin_url( 'admin.php?page=plugiva-clientguard' ) );
 			exit;
 		}
@@ -194,6 +205,8 @@ class PCGD_Admin_Notices {
 			: '';
 
 		if ( '1' === $dismiss ) {
+
+			check_admin_referer( 'pcgd_dismiss_client_mode_notice' );
 
 			update_user_meta( get_current_user_id(), 'pcgd_client_mode_notice_dismissed', 1 );
 
