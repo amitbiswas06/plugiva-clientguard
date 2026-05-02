@@ -17,3 +17,10 @@ delete_option( 'pcgd_settings' );
 
 // (Optional safety) Delete site option too.
 delete_site_option( 'pcgd_settings' );
+
+// Remove user meta for dismissed notice
+$users = get_users( array( 'fields' => 'ID' ) );
+
+foreach ( $users as $user_id ) {
+    delete_user_meta( $user_id, 'pcgd_client_mode_notice_dismissed' );
+}
