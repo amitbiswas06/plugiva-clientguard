@@ -29,6 +29,8 @@ class PCGD_Admin_Settings_Guard {
 
         $loader->add_action( 'load-options-permalink.php', $this, 'block_permalink_page' );
 
+        $loader->add_action( 'load-options-connectors.php', $this, 'block_connectors_page' ); // @since 1.5.0
+
         $loader->add_action( 'admin_head', $this, 'hide_site_url_fields_css' ); // @since 1.4.0
     }
 
@@ -44,6 +46,23 @@ class PCGD_Admin_Settings_Guard {
         }
 
         // Redirect to dashboard
+        wp_safe_redirect( admin_url() );
+        exit;
+    }
+
+    /**
+     * Block access to AI Connectors page in Client Mode.
+     *
+     * @return void
+     * @since 1.5.0
+     */
+    public function block_connectors_page() {
+
+        if ( ! PCGD_Core_Plugin::is_client_mode() ) {
+            return;
+        }
+
+        // Redirect to dashboard.
         wp_safe_redirect( admin_url() );
         exit;
     }

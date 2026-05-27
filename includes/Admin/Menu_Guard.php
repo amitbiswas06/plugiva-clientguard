@@ -59,6 +59,10 @@ class PCGD_Admin_Menu_Guard {
 		// @since 1.4.0
 		if ( PCGD_Core_Plugin::is_client_mode() ) {
 			remove_submenu_page( 'options-general.php', 'options-permalink.php' );
+
+			// WordPress AI / Connectors screen.
+			// @since 1.5.0 - new menu slug for AI Connectors page.
+			remove_submenu_page( 'options-general.php', 'options-connectors.php' );
 		}
 
 		if ( empty( $hidden ) ) {

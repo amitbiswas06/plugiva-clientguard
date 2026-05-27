@@ -51,19 +51,18 @@ class PCGD_Core_Plugin {
 	 */
 	private function define_admin_hooks() {
 
-		if ( ! is_admin() ) {
-			return;
-		}
-
-		$settings = new PCGD_Admin_Settings();
-
-		$this->loader->add_action( 'admin_menu', $settings, 'register_menu' );
-		$this->loader->add_action( 'admin_init', $settings, 'register_settings' );
-
-		// Guards and notices will be wired here in next steps.
-        // Menu Guard.
-        $menu_guard = new PCGD_Admin_Menu_Guard();
-        $menu_guard->register( $this->loader );
+		/**
+		 * Operational guards.
+		 *
+		 * WordPress 7.0+ increasingly performs privileged operations
+		 * through REST requests (plugin installs, AI connectors, etc.).
+		 *
+		 * These guards must therefore load globally so operational
+		 * protections continue to apply outside traditional wp-admin
+		 * execution contexts.
+		 *
+		 * @since 1.5.0
+		 */
 
 		// Theme Guard.
 		$theme_guard = new PCGD_Admin_Theme_Guard();
@@ -73,14 +72,28 @@ class PCGD_Core_Plugin {
 		$plugin_guard = new PCGD_Admin_Plugin_Guard();
 		$plugin_guard->register( $this->loader );
 
-		// Content Guard.
-		$content_guard = new PCGD_Admin_Content_Guard();
-		$content_guard->register( $this->loader );
-
 		// Settings Guard.
 		// @since 1.2.0 - new guard for site URL protection and future settings-related protections.
 		$settings_guard = new PCGD_Admin_Settings_Guard();
 		$settings_guard->register( $this->loader );
+
+		// Stop here for non-admin requests.
+		if ( ! is_admin() ) {
+			return;
+		}
+
+		$settings = new PCGD_Admin_Settings();
+
+		$this->loader->add_action( 'admin_menu', $settings, 'register_menu' );
+		$this->loader->add_action( 'admin_init', $settings, 'register_settings' );
+
+		// Menu Guard.
+		$menu_guard = new PCGD_Admin_Menu_Guard();
+		$menu_guard->register( $this->loader );
+
+		// Content Guard.
+		$content_guard = new PCGD_Admin_Content_Guard();
+		$content_guard->register( $this->loader );
 
 		// Admin Notices.
 		$notices = new PCGD_Admin_Notices();
@@ -100,7 +113,6 @@ class PCGD_Core_Plugin {
 			$settings,
 			'add_plugin_settings_link'
 		);
-
 	}
 
 	/**
