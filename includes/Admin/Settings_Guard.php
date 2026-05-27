@@ -29,7 +29,14 @@ class PCGD_Admin_Settings_Guard {
 
         $loader->add_action( 'load-options-permalink.php', $this, 'block_permalink_page' );
 
+        // block access to AI Connectors page in Client Mode.
         $loader->add_action( 'load-options-connectors.php', $this, 'block_connectors_page' ); // @since 1.5.0
+
+        // block access to AI Settings page ("options-general.php?page=ai-wp-admin") in Client Mode.
+        $loader->add_action( 'load-settings_page_ai-wp-admin', $this, 'block_ai_settings_page' ); // @since 1.5.0
+
+        // Suspend WordPress AI runtime features in Client Mode.
+        $loader->add_filter( 'wpai_features_enabled', $this, 'filter_ai_runtime_enabled' ); // @since 1.5.0
 
         $loader->add_action( 'admin_head', $this, 'hide_site_url_fields_css' ); // @since 1.4.0
     }
@@ -65,6 +72,47 @@ class PCGD_Admin_Settings_Guard {
         // Redirect to dashboard.
         wp_safe_redirect( admin_url() );
         exit;
+    }
+
+    /**
+     * Block WordPress AI settings page in Client Mode.
+     *
+     * @return void
+     * @since 1.5.0
+     */
+    public function block_ai_settings_page() {
+
+        if ( ! PCGD_Core_Plugin::is_client_mode() ) {
+            return;
+        }
+
+        // Redirect to dashboard.
+        wp_safe_redirect( admin_url() );
+        exit;
+    }
+
+    /**
+     * Filter whether WordPress AI runtime features should initialize.
+     *
+     * Client Mode represents a protected operational environment where
+     * advanced automation and AI-powered mutation systems are suspended.
+     *
+     * This integration uses the official WordPress AI runtime filter
+     * and does not modify stored plugin settings or user preferences.
+     *
+     * @param bool $enabled Whether AI runtime features are enabled.
+     *
+     * @return bool
+     * @since 1.5.0
+     */
+    public function filter_ai_runtime_enabled( $enabled ) {
+
+        // Suspend AI runtime features in Client Mode.
+        if ( PCGD_Core_Plugin::is_client_mode() ) {
+            return false;
+        }
+
+        return $enabled;
     }
 
     /**
