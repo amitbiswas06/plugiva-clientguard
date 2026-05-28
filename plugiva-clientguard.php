@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: Plugiva ClientGuard
- * Description: ClientGuard simplifies the WordPress admin by removing unnecessary risk points and preventing unintended changes.
+ * Description: ClientGuard simplifies and protects the WordPress admin by reducing risky operations and helping prevent unintended changes.
  * Version:     1.5.0
  * Author:      Plugiva
  * Author URI:  https://plugiva.com

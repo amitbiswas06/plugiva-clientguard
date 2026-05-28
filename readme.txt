@@ -2,9 +2,9 @@
 Contributors: amitbiswas06
 Tags: admin, safety, guardrails, client mode, hide menu
 Requires at least: 6.0
-Tested up to: 6.9
+Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.4.0
+Stable tag: 1.5.0
 License: GPL v2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -12,9 +12,9 @@ Simplify the WordPress admin and help prevent unintended changes with safe defau
 
 == Description ==
 
-Plugiva ClientGuard simplifies the WordPress admin by removing unnecessary risk points and helping prevent unintended changes.
+Plugiva ClientGuard simplifies and protects the WordPress admin by reducing risky operations and helping prevent unintended changes.
 
-It adds practical guardrails to sensitive areas - by reducing access to settings that are rarely needed in day-to-day use.
+It adds practical guardrails to sensitive areas by reducing access to risky operations and settings that are rarely needed in day-to-day site management.
 
 With one-click Client Mode, you can protect plugins, themes, and critical settings while keeping the admin area clean and usable.
 
@@ -53,6 +53,7 @@ Enable Client Mode to instantly apply safe defaults:
 * Hides selected admin menus (including ACF when active)
 * Keeps important pages safe from editing or deletion
 * Keeps critical WordPress settings stable (Site URL, Permalinks)
+* Helps govern modern WordPress operational workflows, including REST-based plugin management
 * Works with ACF (Advanced Custom Fields) automatically
 * Safe defaults - nothing changes on activation
 * Clean uninstall with no leftover data
@@ -102,6 +103,14 @@ Plugiva ClientGuard includes developer-friendly hooks for customizing certain be
 
 == Changelog ==
 
+= 1.5.0 =
+
+* Improved compatibility with modern WordPress operational workflows introduced in WordPress 7.0
+* Extended plugin installation protections to REST-based provisioning workflows
+* Added Client Mode governance for WordPress AI and Connectors admin surfaces
+* Suspends WordPress AI runtime features while Client Mode is active
+* Improved operational consistency across admin and REST contexts
+
 = 1.4.0 =
 * Simplified admin experience by removing unnecessary notices
 * Introduced centralized Client Mode messaging
@@ -134,6 +143,9 @@ Plugiva ClientGuard includes developer-friendly hooks for customizing certain be
 * Initial release.
 
 == Upgrade Notice ==
+
+= 1.5.0 =
+Improves compatibility with modern WordPress operational workflows and extends Client Mode governance to new WordPress 7.0 admin surfaces.
 
 = 1.4.0 =
 Improves admin experience with simplified UI, centralized messaging, and guided Client Mode onboarding.
