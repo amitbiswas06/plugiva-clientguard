@@ -4,7 +4,7 @@ Tags: admin, safety, guardrails, client mode, hide menu
 Requires at least: 6.0
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.5.0
+Stable tag: 1.5.1
 License: GPL v2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -103,6 +103,14 @@ Plugiva ClientGuard includes developer-friendly hooks for customizing certain be
 
 == Changelog ==
 
+= 1.5.1 =
+
+* Improved admin bar consistency by respecting ClientGuard menu visibility settings
+* Hidden menus are now also removed from relevant admin bar navigation shortcuts
+* Protected content no longer shows frontend Edit shortcuts when editing is restricted
+* Improved Client Mode navigation consistency across admin and frontend views
+* Refined frontend admin bar governance architecture
+
 = 1.5.0 =
 
 * Improved compatibility with modern WordPress operational workflows introduced in WordPress 7.0
@@ -143,6 +151,9 @@ Plugiva ClientGuard includes developer-friendly hooks for customizing certain be
 * Initial release.
 
 == Upgrade Notice ==
+
+= 1.5.1 =
+Improves admin bar consistency by aligning frontend shortcuts with ClientGuard menu visibility and protected content settings.
 
 = 1.5.0 =
 Improves compatibility with modern WordPress operational workflows and extends Client Mode governance to new WordPress 7.0 admin surfaces.
