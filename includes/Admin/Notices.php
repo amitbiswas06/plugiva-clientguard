@@ -27,6 +27,109 @@ class PCGD_Admin_Notices {
 		$loader->add_action( 'admin_notices', $this, 'show_client_mode_status' );
 		$loader->add_action( 'admin_notices', $this, 'show_client_mode_suggestion' );
 		$loader->add_action( 'admin_init', $this, 'handle_client_mode_actions' );
+
+		// @since 1.5.1 - remove admin bar nodes for hidden menus and protected content.
+		$loader->add_action( 'admin_bar_menu', $this, 'remove_hidden_admin_bar_nodes', 999 );
+
+	}
+
+	/**
+	 * Remove admin bar items for hidden menus.
+	 *
+	 * Mirrors ClientGuard menu visibility rules and removes
+	 * edit shortcuts for protected content.
+	 *
+	 * @param WP_Admin_Bar $wp_admin_bar Admin bar instance.
+	 * @return void
+	 * @since 1.5.1
+	 */
+	public function remove_hidden_admin_bar_nodes( $wp_admin_bar ) {
+
+		$settings = get_option( 'pcgd_settings', array() );
+
+		// Mirror hidden admin menus in the admin bar.
+		$hidden = ! empty( $settings['hide_menus'] )
+			? (array) $settings['hide_menus']
+			: array();
+
+		if ( PCGD_Core_Plugin::is_client_mode() ) {
+
+			$hidden = array_unique(
+				array_merge(
+					$hidden,
+					array(
+						'plugins.php',
+						'themes.php',
+						'tools.php',
+					)
+				)
+			);
+
+			if ( function_exists( 'acf' ) ) {
+				$hidden[] = 'acf';
+			}
+		}
+
+		$map = array(
+			'plugins.php'       => array(
+				'plugins',
+			),
+			'themes.php'        => array(
+				'appearance',
+				'widgets',
+				'menus',
+				'customize',
+			),
+			'upload.php'        => array(
+				'new-media',
+			),
+			'edit-comments.php' => array(
+				'comments',
+			),
+			'users.php'         => array(
+				'new-user',
+			),
+		);
+
+		foreach ( $hidden as $menu_slug ) {
+
+			if ( empty( $map[ $menu_slug ] ) ) {
+				continue;
+			}
+
+			foreach ( $map[ $menu_slug ] as $node_id ) {
+				$wp_admin_bar->remove_node( $node_id );
+			}
+		}
+
+		// Remove Edit link for protected content.
+		if ( ! is_singular() ) {
+			return;
+		}
+
+		$post_id = get_queried_object_id();
+
+		if ( ! $post_id ) {
+			return;
+		}
+
+		$protected = ! empty( $settings['protected_content'] )
+			? array_map( 'absint', (array) $settings['protected_content'] )
+			: array();
+
+		if ( PCGD_Core_Plugin::is_client_mode() ) {
+
+			// Client Mode automatically protects the homepage.
+			$front_page = get_option( 'page_on_front' );
+
+			if ( $front_page && ! in_array( $front_page, $protected, true ) ) {
+				$protected[] = (int) $front_page;
+			}
+		}
+
+		if ( in_array( $post_id, $protected, true ) ) {
+			$wp_admin_bar->remove_node( 'edit' );
+		}
 	}
 
 

@@ -53,13 +53,13 @@ class PCGD_Core_Plugin {
 
 		/**
 		 * Operational guards.
+		 * WordPress 7.0+
 		 *
-		 * WordPress 7.0+ increasingly performs privileged operations
-		 * through REST requests (plugin installs, AI connectors, etc.).
+		 * Modern WordPress workflows may execute outside traditional
+		 * wp-admin requests (REST, automation, provisioning, etc.).
 		 *
-		 * These guards must therefore load globally so operational
-		 * protections continue to apply outside traditional wp-admin
-		 * execution contexts.
+		 * These guards therefore load globally so operational
+		 * protections apply consistently across execution contexts.
 		 *
 		 * @since 1.5.0
 		 */
@@ -76,6 +76,11 @@ class PCGD_Core_Plugin {
 		// @since 1.2.0 - new guard for site URL protection and future settings-related protections.
 		$settings_guard = new PCGD_Admin_Settings_Guard();
 		$settings_guard->register( $this->loader );
+
+		// reloacted outside admin check
+		// @since 1.5.1
+		$notices = new PCGD_Admin_Notices();
+		$notices->register( $this->loader );
 
 		// Stop here for non-admin requests.
 		if ( ! is_admin() ) {
@@ -94,10 +99,6 @@ class PCGD_Core_Plugin {
 		// Content Guard.
 		$content_guard = new PCGD_Admin_Content_Guard();
 		$content_guard->register( $this->loader );
-
-		// Admin Notices.
-		$notices = new PCGD_Admin_Notices();
-		$notices->register( $this->loader );
 
 		// AJAX Handlers.
 		$ajax = new PCGD_Admin_Ajax();
