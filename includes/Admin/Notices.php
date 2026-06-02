@@ -79,6 +79,7 @@ class PCGD_Admin_Notices {
 				'widgets',
 				'menus',
 				'customize',
+				'site-editor',
 			),
 			'upload.php'        => array(
 				'new-media',
