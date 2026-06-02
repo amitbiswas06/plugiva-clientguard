@@ -100,6 +100,22 @@ class PCGD_Admin_Settings {
 			)
 		);
 
+		// New appearance management lock field, @since 1.6.0
+		add_settings_field(
+			'lock_appearance_management',
+			esc_html__( 'Lock Appearance Management', 'plugiva-clientguard' ),
+			array( $this, 'render_checkbox' ),
+			'plugiva-clientguard',
+			'pcgd_section_general',
+			array(
+				'key'   => 'lock_appearance_management',
+				'label' => esc_html__(
+					'Prevent changes to menus, widgets, customization, and appearance-related settings.',
+					'plugiva-clientguard'
+				),
+			)
+		);
+
 		add_settings_field(
 			'lock_plugin_install',
 			esc_html__('Lock Plugin Installation', 'plugiva-clientguard'),
@@ -177,14 +193,15 @@ class PCGD_Admin_Settings {
 	 */
 	private function get_default_settings() {
 		return array(
-			'client_mode' 			=> false, // @since 1.1.0
-			'hide_menus'            => array(),
-			'lock_theme_switch'     => false,
-			'lock_plugin_install'   => false,
-			'allow_plugin_toggle'   => true,
-			'protect_site_urls'     => false, // @since 1.2.0
-			'protected_content'     => array(),
-			'admin_notice_text'     => esc_html__(
+			'client_mode' 					=> false, // @since 1.1.0
+			'hide_menus'            		=> array(),
+			'lock_theme_switch'     		=> false,
+			'lock_appearance_management'	=> false, // @since 1.6.0
+			'lock_plugin_install'   		=> false,
+			'allow_plugin_toggle'   		=> true,
+			'protect_site_urls'     		=> false, // @since 1.2.0
+			'protected_content'     		=> array(),
+			'admin_notice_text'     		=> esc_html__(
 				'Some site settings are managed to keep things running smoothly.',
 				'plugiva-clientguard'
 			),
@@ -211,10 +228,11 @@ class PCGD_Admin_Settings {
 			$output['client_mode'] = true;
 		}
 
-		$output['lock_theme_switch']   	= ! empty( $input['lock_theme_switch'] );
-		$output['lock_plugin_install'] 	= ! empty( $input['lock_plugin_install'] );
-		$output['allow_plugin_toggle'] 	= ! empty( $input['allow_plugin_toggle'] );
-		$output['protect_site_urls'] 	= ! empty( $input['protect_site_urls'] ); // @since 1.2.0
+		$output['lock_theme_switch']   			= ! empty( $input['lock_theme_switch'] );
+		$output['lock_appearance_management'] 	= ! empty( $input['lock_appearance_management'] ); // @since 1.6.0
+		$output['lock_plugin_install'] 			= ! empty( $input['lock_plugin_install'] );
+		$output['allow_plugin_toggle'] 			= ! empty( $input['allow_plugin_toggle'] );
+		$output['protect_site_urls'] 			= ! empty( $input['protect_site_urls'] ); // @since 1.2.0
 
 		// Sanitize protected content IDs.
 		if ( isset( $input['protected_content'] ) && is_array( $input['protected_content'] ) ) {
@@ -251,10 +269,11 @@ class PCGD_Admin_Settings {
 		// @since 1.1.0
 		if ( ! empty( $output['client_mode'] ) ) {
 
-			$output['lock_theme_switch']   	= true;
-			$output['lock_plugin_install'] 	= true;
-			$output['allow_plugin_toggle'] 	= false;
-			$output['protect_site_urls'] 	= true; // @since 1.2.0
+			$output['lock_theme_switch']   			= true;
+			$output['lock_appearance_management'] 	= true; // @since 1.6.0
+			$output['lock_plugin_install'] 			= true;
+			$output['allow_plugin_toggle'] 			= false;
+			$output['protect_site_urls'] 			= true; // @since 1.2.0
 
 			// For menu hiding
 			$client_locked = array(

@@ -42,6 +42,7 @@ class PCGD_Admin_Settings_State {
 
             if ( in_array( $key, array(
                 'lock_theme_switch',
+                'lock_appearance_management', // @since 1.6.0
                 'lock_plugin_install',
                 'allow_plugin_toggle',
                 'protect_site_urls',
@@ -60,6 +61,7 @@ class PCGD_Admin_Settings_State {
 
             if ( in_array( $key, array(
                 'lock_theme_switch',
+                'lock_appearance_management', // @since 1.6.0
                 'lock_plugin_install',
                 'allow_plugin_toggle',
                 'protect_site_urls',
@@ -133,6 +135,23 @@ class PCGD_Admin_Settings_State {
                 'checked'  => true,
                 'disabled' => true,
                 'note'     => esc_html__( 'managed by Client Mode.', 'plugiva-clientguard' ),
+            );
+        }
+
+        // Appearance governance.
+        // @since 1.6.0
+        if (
+            'themes.php' === $slug
+            && ! empty( $settings['lock_theme_switch'] )
+            && ! empty( $settings['lock_appearance_management'] )
+        ) {
+            return array(
+                'checked'  => $is_checked,
+                'disabled' => true,
+                'note'     => esc_html__(
+                    'managed by appearance governance.',
+                    'plugiva-clientguard'
+                ),
             );
         }
 

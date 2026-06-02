@@ -56,29 +56,6 @@ class PCGD_Admin_Assets {
 			);
 		}
 
-		// Load Settings Guard script on General Settings page
-		// @since 1.2.0 - new script for site URL protection and future settings-related protections.
-		/* if ( 'options-general.php' === $hook ) {
-
-			wp_enqueue_script(
-				'pcgd-settings-guard',
-				PCGD_PLUGIN_URL . 'assets/admin/settings-guard.js',
-				array(),
-				PCGD_VERSION,
-				true
-			);
-
-			$settings_guard = new PCGD_Admin_Settings_Guard();
-
-			wp_localize_script(
-				'pcgd-settings-guard',
-				'pcgdSettingsGuard',
-				array(
-					'protectSiteUrls' => $settings_guard->is_site_url_protected(),
-				)
-			);
-		} */
-
 	}
 	
 }

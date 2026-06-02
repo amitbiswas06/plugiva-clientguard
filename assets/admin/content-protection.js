@@ -121,6 +121,7 @@
 
 	const controlledSettings = [
 		'lock_theme_switch',
+		'lock_appearance_management', // @since 1.6.0
 		'lock_plugin_install',
 		'protect_site_urls', // @since 1.2.0
 	];
@@ -150,7 +151,12 @@
 		menuFields.forEach(function (el) {
 
 			if (controlledMenus.includes(el.value)) {
-				el.disabled = isEnabled;
+
+				// Never override server-side disabled states.
+				// @since 1.6.0
+				if (isEnabled) {
+					el.disabled = true;
+				}
 			}
 		});
 	}

@@ -35,6 +35,7 @@ class PCGD_Core_Plugin {
 		require_once PCGD_PLUGIN_PATH . 'includes/Admin/Settings.php';
 		require_once PCGD_PLUGIN_PATH . 'includes/Admin/Menu_Guard.php';
 		require_once PCGD_PLUGIN_PATH . 'includes/Admin/Theme_Guard.php';
+		require_once PCGD_PLUGIN_PATH . 'includes/Admin/Appearance_Guard.php'; // @since 1.6.0
 		require_once PCGD_PLUGIN_PATH . 'includes/Admin/Plugin_Guard.php';
 		require_once PCGD_PLUGIN_PATH . 'includes/Admin/Content_Guard.php';
 		require_once PCGD_PLUGIN_PATH . 'includes/Admin/Dashboard_Guard.php'; // @since 1.5.2
@@ -68,6 +69,11 @@ class PCGD_Core_Plugin {
 		// Theme Guard.
 		$theme_guard = new PCGD_Admin_Theme_Guard();
 		$theme_guard->register( $this->loader );
+
+		// Appearance Guard.
+		// @since 1.6.0
+		$appearance_guard = new PCGD_Admin_Appearance_Guard();
+		$appearance_guard->register( $this->loader );
 
 		// Plugin Guard.
 		$plugin_guard = new PCGD_Admin_Plugin_Guard();
