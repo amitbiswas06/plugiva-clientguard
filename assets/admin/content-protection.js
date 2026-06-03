@@ -152,11 +152,13 @@
 
 			if (controlledMenus.includes(el.value)) {
 
-				// Never override server-side disabled states.
+				// Appearance Governance may already manage this menu.
 				// @since 1.6.0
-				if (isEnabled) {
-					el.disabled = true;
+				if ('themes.php' === el.value && !isEnabled) {
+					return;
 				}
+
+				el.disabled = isEnabled;
 			}
 		});
 	}
