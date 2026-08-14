@@ -22,6 +22,7 @@ class PCGD_Admin_Plugin_Guard {
 	public function register( $loader ) {
 		$loader->add_filter( 'user_has_cap', $this, 'filter_caps', 10, 4 );
 		$loader->add_filter( 'map_meta_cap', $this, 'block_plugin_actions', 10, 4 );
+		$loader->add_filter( 'pre_update_option_active_plugins', $this, 'guard_active_plugins_transition', 10, 3 );
 	}
 
 	/**
@@ -110,4 +111,58 @@ class PCGD_Admin_Plugin_Guard {
 
 		return $caps;
 	}
+
+	/**
+	 * Guard the active plugin state against unauthorized transitions.
+	 *
+	 * Preserves the last accepted active plugin state when plugin
+	 * activation or deactivation is restricted by ClientGuard.
+	 *
+	 * @since 1.7.0
+	 *
+	 * @param array  $new_value New active plugins value.
+	 * @param array  $old_value Old active plugins value.
+	 * @param string $option    Option name.
+	 * @return array New value when allowed, otherwise the previous value.
+	 */
+	public function guard_active_plugins_transition( $new_value, $old_value, $option ) {
+
+		// Never restrict network super admins.
+		if ( is_multisite() && is_super_admin( get_current_user_id() ) ) {
+			return $new_value;
+		}
+
+		$settings = get_option( self::OPTION_NAME );
+
+		$lock_install = ! empty( $settings['lock_plugin_install'] );
+		$allow_toggle = ! empty( $settings['allow_plugin_toggle'] );
+
+		// Client Mode override.
+		if ( PCGD_Core_Plugin::is_client_mode() ) {
+			$lock_install = true;
+			$allow_toggle = false;
+		}
+
+		// Plugin toggling is allowed.
+		if ( ! $lock_install || $allow_toggle ) {
+			return $new_value;
+		}
+
+		// Only inspect valid plugin state arrays.
+		if ( ! is_array( $new_value ) || ! is_array( $old_value ) ) {
+			return $new_value;
+		}
+
+		$added   = array_diff( $new_value, $old_value );
+		$removed = array_diff( $old_value, $new_value );
+
+		// Preserve the last accepted state when activation or deactivation
+		// is restricted by ClientGuard.
+		if ( ! empty( $added ) || ! empty( $removed ) ) {
+			return $old_value;
+		}
+
+		return $new_value;
+	}
+	
 }
