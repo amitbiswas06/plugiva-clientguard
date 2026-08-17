@@ -23,6 +23,10 @@ class PCGD_Admin_Plugin_Guard {
 		$loader->add_filter( 'user_has_cap', $this, 'filter_caps', 10, 4 );
 		$loader->add_filter( 'map_meta_cap', $this, 'block_plugin_actions', 10, 4 );
 		$loader->add_filter( 'pre_update_option_active_plugins', $this, 'guard_active_plugins_transition', 10, 3 );
+	
+		// @since 1.7.0
+		$sentinel = new PCGD_Admin_Plugin_Deletion_Sentinel( $this );
+		$sentinel->register( $loader );
 	}
 
 	/**
@@ -163,6 +167,25 @@ class PCGD_Admin_Plugin_Guard {
 		}
 
 		return $new_value;
+	}
+
+	/**
+	 * Determine whether plugin deletion is protected.
+	 *
+	 * @since 1.7.0
+	 * @return bool
+	 */
+	public function is_plugin_deletion_protected() {
+
+		$settings = get_option( self::OPTION_NAME, array() );
+
+		$lock_install = ! empty( $settings['lock_plugin_install'] );
+
+		if ( PCGD_Core_Plugin::is_client_mode() ) {
+			$lock_install = true;
+		}
+
+		return $lock_install;
 	}
 	
 }
