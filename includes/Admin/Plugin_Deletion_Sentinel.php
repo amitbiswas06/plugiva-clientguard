@@ -100,7 +100,7 @@ class PCGD_Admin_Plugin_Deletion_Sentinel {
 	 * @return bool
 	 */
 	private function is_protected() {
-		return $this->guard->is_plugin_deletion_protected();
+		return $this->guard->is_plugin_operations_protected();
 	}
 
 	/**

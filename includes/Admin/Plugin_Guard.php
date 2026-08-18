@@ -25,8 +25,11 @@ class PCGD_Admin_Plugin_Guard {
 		$loader->add_filter( 'pre_update_option_active_plugins', $this, 'guard_active_plugins_transition', 10, 3 );
 	
 		// @since 1.7.0
-		$sentinel = new PCGD_Admin_Plugin_Deletion_Sentinel( $this );
-		$sentinel->register( $loader );
+		$deletion_sentinel = new PCGD_Admin_Plugin_Deletion_Sentinel( $this );
+		$deletion_sentinel->register( $loader );
+
+		$installation_sentinel = new PCGD_Admin_Plugin_Installation_Sentinel( $this );
+		$installation_sentinel->register( $loader );
 	}
 
 	/**
@@ -175,7 +178,7 @@ class PCGD_Admin_Plugin_Guard {
 	 * @since 1.7.0
 	 * @return bool
 	 */
-	public function is_plugin_deletion_protected() {
+	public function is_plugin_operations_protected() {
 
 		$settings = get_option( self::OPTION_NAME, array() );
 

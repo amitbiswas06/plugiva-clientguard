@@ -39,6 +39,7 @@ class PCGD_Core_Plugin {
 		require_once PCGD_PLUGIN_PATH . 'includes/Admin/Plugin_Guard.php';
 		require_once PCGD_PLUGIN_PATH . 'includes/Admin/Plugin_Deletion_Sentinel.php'; // @since 1.7.0
 		require_once PCGD_PLUGIN_PATH . 'includes/Admin/Plugin_Filesystem_Proxy.php'; // @since 1.7.0
+		require_once PCGD_PLUGIN_PATH . 'includes/Admin/Plugin_Installation_Sentinel.php'; // @since 1.7.0
 		require_once PCGD_PLUGIN_PATH . 'includes/Admin/Content_Guard.php';
 		require_once PCGD_PLUGIN_PATH . 'includes/Admin/Dashboard_Guard.php'; // @since 1.5.2
 		require_once PCGD_PLUGIN_PATH . 'includes/Admin/Settings_Guard.php'; // @since 1.2.0
