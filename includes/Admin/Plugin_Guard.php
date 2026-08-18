@@ -173,22 +173,31 @@ class PCGD_Admin_Plugin_Guard {
 	}
 
 	/**
-	 * Determine whether plugin deletion is protected.
+	 * Determine whether plugin operations is protected.
 	 *
 	 * @since 1.7.0
 	 * @return bool
 	 */
 	public function is_plugin_operations_protected() {
 
-		$settings = get_option( self::OPTION_NAME, array() );
+		$user_id = get_current_user_id();
 
-		$lock_install = ! empty( $settings['lock_plugin_install'] );
-
-		if ( PCGD_Core_Plugin::is_client_mode() ) {
-			$lock_install = true;
+		if ( is_multisite() && $user_id && is_super_admin( $user_id ) ) {
+			return false;
 		}
 
-		return $lock_install;
+		$settings = get_option( self::OPTION_NAME, array() );
+
+		$lock = ! empty( $settings['lock_plugin_install'] );
+
+		/*
+		* Client Mode protects all plugin operations.
+		*/
+		if ( PCGD_Core_Plugin::is_client_mode() ) {
+			$lock = true;
+		}
+
+		return $lock;
 	}
 	
 }

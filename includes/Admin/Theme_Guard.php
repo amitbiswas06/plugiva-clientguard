@@ -21,6 +21,10 @@ class PCGD_Admin_Theme_Guard {
 	 */
 	public function register( $loader ) {
 		$loader->add_filter( 'user_has_cap', $this, 'block_theme_caps', 10, 4 );
+
+		// @since 1.7.0
+		$theme_switching_sentinel = new PCGD_Admin_Theme_Switching_Sentinel( $this );
+		$theme_switching_sentinel->register( $loader );
 	}
 
 	/**
@@ -69,5 +73,33 @@ class PCGD_Admin_Theme_Guard {
 		}
 
 		return $allcaps;
+	}
+
+	/**
+	 * Determine whether theme operations are protected.
+	 *
+	 * @since 1.7.0
+	 * @return bool
+	 */
+	public function is_theme_operations_protected() {
+
+		$user_id = get_current_user_id();
+
+		if ( is_multisite() && $user_id && is_super_admin( $user_id ) ) {
+			return false;
+		}
+
+		$settings = get_option( self::OPTION_NAME, array() );
+
+		$lock = ! empty( $settings['lock_theme_switch'] );
+
+		/*
+		* Client Mode protects all theme operations.
+		*/
+		if ( PCGD_Core_Plugin::is_client_mode() ) {
+			$lock = true;
+		}
+
+		return $lock;
 	}
 }
