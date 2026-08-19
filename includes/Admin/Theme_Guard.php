@@ -25,6 +25,9 @@ class PCGD_Admin_Theme_Guard {
 		// @since 1.7.0
 		$theme_switching_sentinel = new PCGD_Admin_Theme_Switching_Sentinel( $this );
 		$theme_switching_sentinel->register( $loader );
+
+		$theme_installation_sentinel = new PCGD_Admin_Theme_Installation_Sentinel( $this );
+		$theme_installation_sentinel->register( $loader );
 	}
 
 	/**

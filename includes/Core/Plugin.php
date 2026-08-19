@@ -36,6 +36,7 @@ class PCGD_Core_Plugin {
 		require_once PCGD_PLUGIN_PATH . 'includes/Admin/Menu_Guard.php';
 		require_once PCGD_PLUGIN_PATH . 'includes/Admin/Theme_Guard.php';
 		require_once PCGD_PLUGIN_PATH . 'includes/Admin/Theme_Switching_Sentinel.php'; // @since 1.7.0
+		require_once PCGD_PLUGIN_PATH . 'includes/Admin/Theme_Installation_Sentinel.php'; // @since 1.7.0
 		require_once PCGD_PLUGIN_PATH . 'includes/Admin/Appearance_Guard.php'; // @since 1.6.0
 		require_once PCGD_PLUGIN_PATH . 'includes/Admin/Plugin_Guard.php';
 		require_once PCGD_PLUGIN_PATH . 'includes/Admin/Plugin_Deletion_Sentinel.php'; // @since 1.7.0
