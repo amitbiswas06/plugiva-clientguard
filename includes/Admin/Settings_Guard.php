@@ -27,7 +27,14 @@ class PCGD_Admin_Settings_Guard {
 
         $loader->add_filter( 'pre_update_option_home', $this, 'block_home_update', 10, 2 );
 
+        // Redirect direct access to the permalink page when Client Mode is ON
         $loader->add_action( 'load-options-permalink.php', $this, 'block_permalink_page' );
+
+        // Protect permalink structure when CLient Mode is ON
+        // @since 1.7.0
+        $loader->add_filter( 'pre_update_option_permalink_structure', $this, 'block_permalink_structure_update', 10, 2 );
+        $loader->add_filter( 'pre_update_option_category_base', $this, 'block_permalink_structure_update', 10, 2 );
+        $loader->add_filter( 'pre_update_option_tag_base', $this, 'block_permalink_structure_update', 10, 2 );
 
         // block access to AI Connectors page in Client Mode.
         $loader->add_action( 'load-options-connectors.php', $this, 'block_connectors_page' ); // @since 1.5.0
@@ -55,6 +62,28 @@ class PCGD_Admin_Settings_Guard {
         // Redirect to dashboard
         wp_safe_redirect( admin_url() );
         exit;
+    }
+
+    /**
+     * Block permalink structure updates in Client Mode.
+     *
+     * @since 1.7.0
+     * @param string $new_value New value.
+     * @param string $old_value Old value.
+     * @return string
+     */
+    public function block_permalink_structure_update( $new_value, $old_value ) {
+
+        if ( ! PCGD_Core_Plugin::is_client_mode() ) {
+            return $new_value;
+        }
+
+        // Only block if an actual change is attempted.
+        if ( $new_value !== $old_value ) {
+            return $old_value;
+        }
+
+        return $new_value;
     }
 
     /**
