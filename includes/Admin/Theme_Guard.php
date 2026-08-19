@@ -28,6 +28,9 @@ class PCGD_Admin_Theme_Guard {
 
 		$theme_installation_sentinel = new PCGD_Admin_Theme_Installation_Sentinel( $this );
 		$theme_installation_sentinel->register( $loader );
+
+		$theme_deletion_sentinel = new PCGD_Admin_Theme_Deletion_Sentinel( $this );
+		$theme_deletion_sentinel->register( $loader );
 	}
 
 	/**
