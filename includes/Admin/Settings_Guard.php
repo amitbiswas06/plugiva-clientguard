@@ -30,11 +30,42 @@ class PCGD_Admin_Settings_Guard {
         // Redirect direct access to the permalink page when Client Mode is ON
         $loader->add_action( 'load-options-permalink.php', $this, 'block_permalink_page' );
 
-        // Protect permalink structure when CLient Mode is ON
-        // @since 1.7.0
-        $loader->add_filter( 'pre_update_option_permalink_structure', $this, 'block_permalink_structure_update', 10, 2 );
-        $loader->add_filter( 'pre_update_option_category_base', $this, 'block_permalink_structure_update', 10, 2 );
-        $loader->add_filter( 'pre_update_option_tag_base', $this, 'block_permalink_structure_update', 10, 2 );
+        /**
+         * Filters the permalink options protected in Client Mode.
+         *
+         * @since 1.7.0
+         * @param string[] $protected_options Option names to protect.
+         */
+        $protected_options = apply_filters(
+            'pcgd_protected_permalink_options',
+            array(
+                'permalink_structure',
+                'category_base',
+                'tag_base',
+            )
+        );
+
+        if ( is_array( $protected_options ) ) {
+            foreach ( $protected_options as $option ) {
+                if ( ! is_string( $option ) ) {
+                    continue;
+                }
+
+                $option = sanitize_key( $option );
+
+                if ( empty( $option ) ) {
+                    continue;
+                }
+
+                $loader->add_filter(
+                    'pre_update_option_' . $option,
+                    $this,
+                    'block_permalink_structure_update',
+                    10,
+                    2
+                );
+            }
+        }
 
         // block access to AI Connectors page in Client Mode.
         $loader->add_action( 'load-options-connectors.php', $this, 'block_connectors_page' ); // @since 1.5.0
@@ -65,12 +96,11 @@ class PCGD_Admin_Settings_Guard {
     }
 
     /**
-     * Block permalink structure updates in Client Mode.
+     * Block protected permalink option updates in Client Mode.
      *
-     * @since 1.7.0
-     * @param string $new_value New value.
-     * @param string $old_value Old value.
-     * @return string
+     * @param mixed $new_value New value.
+     * @param mixed $old_value Old value.
+     * @return mixed
      */
     public function block_permalink_structure_update( $new_value, $old_value ) {
 
