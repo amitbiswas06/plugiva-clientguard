@@ -44,7 +44,7 @@ class PCGD_Admin_Plugin_Guard {
 	public function filter_caps( $allcaps, $caps, $args, $user ) {
 
 		// Never restrict network super admins.
-		if ( is_multisite() && is_super_admin( $user->ID ) ) {
+		if ( PCGD_Core_Plugin::should_bypass_protection( $user->ID ) ) {
 			return $allcaps;
 		}
 
@@ -91,7 +91,7 @@ class PCGD_Admin_Plugin_Guard {
 	public function block_plugin_actions( $caps, $cap, $user_id, $args ) {
 
 		// Never restrict network super admins.
-		if ( is_multisite() && is_super_admin( $user_id ) ) {
+		if ( PCGD_Core_Plugin::should_bypass_protection( $user_id ) ) {
 			return $caps;
 		}
 
@@ -135,7 +135,7 @@ class PCGD_Admin_Plugin_Guard {
 	public function guard_active_plugins_transition( $new_value, $old_value, $option ) {
 
 		// Never restrict network super admins.
-		if ( is_multisite() && is_super_admin( get_current_user_id() ) ) {
+		if ( PCGD_Core_Plugin::should_bypass_protection() ) {
 			return $new_value;
 		}
 
@@ -180,9 +180,7 @@ class PCGD_Admin_Plugin_Guard {
 	 */
 	public function is_plugin_operations_protected() {
 
-		$user_id = get_current_user_id();
-
-		if ( is_multisite() && $user_id && is_super_admin( $user_id ) ) {
+		if ( PCGD_Core_Plugin::should_bypass_protection() ) {
 			return false;
 		}
 

@@ -39,7 +39,7 @@ class PCGD_Admin_Appearance_Guard {
 	public function block_appearance_caps( $allcaps, $caps, $args, $user ) {
 
 		// Never restrict network super admins.
-		if ( is_multisite() && is_super_admin( $user->ID ) ) {
+		if ( PCGD_Core_Plugin::should_bypass_protection( $user->ID ) ) {
 			return $allcaps;
 		}
 

@@ -71,6 +71,10 @@ class PCGD_Admin_Dashboard_Guard {
      */
     private function should_hide_activity_widgets() {
 
+        if ( PCGD_Core_Plugin::should_bypass_protection() ) {
+            return false;
+        }
+
         if ( PCGD_Core_Plugin::is_client_mode() ) {
             return true;
         }

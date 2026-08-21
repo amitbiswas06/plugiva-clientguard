@@ -162,6 +162,35 @@ class PCGD_Core_Plugin {
 	}
 
 	/**
+	 * Determine whether the current user should bypass ClientGuard protections.
+	 *
+	 * In multisite, Network Super Admins remain exempt from ClientGuard
+	 * restrictions to preserve network-level administrative operations.
+	 *
+	 * @since 1.7.0
+	 * @param int $user_id Optional user ID.
+	 * @return bool
+	 */
+	public static function should_bypass_protection( $user_id = 0 ) {
+
+		if ( ! is_multisite() ) {
+			return false;
+		}
+
+		$user_id = (int) $user_id;
+
+		if ( $user_id <= 0 ) {
+			$user_id = get_current_user_id();
+		}
+
+		if ( $user_id <= 0 ) {
+			return false;
+		}
+
+		return is_super_admin( $user_id );
+	}
+
+	/**
 	 * Run the plugin.
 	 */
 	public function run() {

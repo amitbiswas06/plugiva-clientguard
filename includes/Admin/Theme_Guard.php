@@ -45,7 +45,7 @@ class PCGD_Admin_Theme_Guard {
 	public function block_theme_caps( $allcaps, $caps, $args, $user ) {
 
 		// Never restrict network super admins.
-		if ( is_multisite() && is_super_admin( $user->ID ) ) {
+		if ( PCGD_Core_Plugin::should_bypass_protection( $user->ID ) ) {
 			return $allcaps;
 		}
 
@@ -89,9 +89,7 @@ class PCGD_Admin_Theme_Guard {
 	 */
 	public function is_theme_operations_protected() {
 
-		$user_id = get_current_user_id();
-
-		if ( is_multisite() && $user_id && is_super_admin( $user_id ) ) {
+		if ( PCGD_Core_Plugin::should_bypass_protection() ) {
 			return false;
 		}
 

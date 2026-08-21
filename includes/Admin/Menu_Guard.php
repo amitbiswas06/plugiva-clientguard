@@ -33,9 +33,9 @@ class PCGD_Admin_Menu_Guard {
 	public function hide_menus() {
 
 		// Never restrict network Super Admins (multisite only).
-        if ( is_multisite() && is_super_admin() ) {
-            return;
-        }
+		if ( PCGD_Core_Plugin::should_bypass_protection() ) {
+			return;
+		}
 
 		$settings = get_option( self::OPTION_NAME );
 
@@ -87,6 +87,11 @@ class PCGD_Admin_Menu_Guard {
 	 * @since 1.1.0
 	 */
 	public function handle_acf_admin_visibility( $show ) {
+
+		// Never restrict network Super Admins (multisite only).
+		if ( PCGD_Core_Plugin::should_bypass_protection() ) {
+			return $show;
+		}
 
 		$settings = get_option( 'pcgd_settings', array() );
 

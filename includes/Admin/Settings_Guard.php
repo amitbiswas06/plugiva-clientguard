@@ -80,13 +80,29 @@ class PCGD_Admin_Settings_Guard {
     }
 
     /**
+     * Helper
+     * Determine whether Client Mode protections should apply.
+     *
+     * @since 1.7.0
+     * @return bool
+     */
+    private function is_client_mode_protection_active() {
+
+        if ( PCGD_Core_Plugin::should_bypass_protection() ) {
+            return false;
+        }
+
+        return PCGD_Core_Plugin::is_client_mode();
+    }
+
+    /**
      * Block access to permalink settings in Client Mode.
      *
      * @return void
      */
     public function block_permalink_page() {
 
-        if ( ! PCGD_Core_Plugin::is_client_mode() ) {
+        if ( ! $this->is_client_mode_protection_active() ) {
             return;
         }
 
@@ -104,7 +120,7 @@ class PCGD_Admin_Settings_Guard {
      */
     public function block_permalink_structure_update( $new_value, $old_value ) {
 
-        if ( ! PCGD_Core_Plugin::is_client_mode() ) {
+        if ( ! $this->is_client_mode_protection_active() ) {
             return $new_value;
         }
 
@@ -124,7 +140,7 @@ class PCGD_Admin_Settings_Guard {
      */
     public function block_connectors_page() {
 
-        if ( ! PCGD_Core_Plugin::is_client_mode() ) {
+        if ( ! $this->is_client_mode_protection_active() ) {
             return;
         }
 
@@ -141,7 +157,7 @@ class PCGD_Admin_Settings_Guard {
      */
     public function block_ai_settings_page() {
 
-        if ( ! PCGD_Core_Plugin::is_client_mode() ) {
+        if ( ! $this->is_client_mode_protection_active() ) {
             return;
         }
 
@@ -167,7 +183,7 @@ class PCGD_Admin_Settings_Guard {
     public function filter_ai_runtime_enabled( $enabled ) {
 
         // Suspend AI runtime features in Client Mode.
-        if ( PCGD_Core_Plugin::is_client_mode() ) {
+        if ( $this->is_client_mode_protection_active() ) {
             return false;
         }
 
@@ -180,6 +196,10 @@ class PCGD_Admin_Settings_Guard {
      * @return bool
      */
     public function is_site_url_protected() {
+
+        if ( PCGD_Core_Plugin::should_bypass_protection() ) {
+            return false;
+        }
 
         $settings = get_option( self::OPTION_NAME );
 

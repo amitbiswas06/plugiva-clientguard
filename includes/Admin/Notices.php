@@ -31,6 +31,10 @@ class PCGD_Admin_Notices {
 		// @since 1.5.1 - remove admin bar nodes for hidden menus and protected content.
 		$loader->add_action( 'admin_bar_menu', $this, 'remove_hidden_admin_bar_nodes', 999 );
 
+		// Multisite Super Admin protection bypass notice.
+		// @since 1.7.0
+		$loader->add_action( 'admin_notices', $this, 'show_super_admin_bypass_notice' );
+
 	}
 
 	/**
@@ -169,6 +173,10 @@ class PCGD_Admin_Notices {
 	 * @since 1.4.0
 	 */
 	public function show_client_mode_status() {
+
+		if ( PCGD_Core_Plugin::should_bypass_protection() ) {
+			return;
+		}
 
 		// Only admins
 		if ( ! current_user_can( 'manage_options' ) ) {
@@ -318,6 +326,52 @@ class PCGD_Admin_Notices {
 			wp_safe_redirect( remove_query_arg( 'pcgd_dismiss_client_mode_notice' ) );
 			exit;
 		}
+	}
+
+	/**
+	 * Show notice when the current user bypasses ClientGuard protections.
+	 *
+	 * @since 1.7.0
+	 *
+	 * @return void
+	 */
+	public function show_super_admin_bypass_notice() {
+
+		if ( ! PCGD_Core_Plugin::should_bypass_protection() ) {
+			return;
+		}
+
+		$screen = get_current_screen();
+
+		if ( ! $screen ) {
+			return;
+		}
+
+		$allowed_screens = array(
+			'dashboard',
+			'settings_page_plugiva-clientguard',
+		);
+
+		if ( ! in_array( $screen->id, $allowed_screens, true ) ) {
+			return;
+		}
+
+		?>
+		<div class="notice notice-info">
+			<p>
+				<strong>
+					<?php esc_html_e( 'ClientGuard Info:', 'plugiva-clientguard' ); ?>
+				</strong>
+
+				<?php
+				esc_html_e(
+					'Network Super Administrators are not restricted by ClientGuard protections in multisite.',
+					'plugiva-clientguard'
+				);
+				?>
+			</p>
+		</div>
+		<?php
 	}
 
 }
