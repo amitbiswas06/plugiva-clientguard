@@ -56,6 +56,29 @@ class PCGD_Admin_Assets {
 			);
 		}
 
+		// Only load in the Site Editor.
+		// @since 1.7.0
+		if ( 'site-editor.php' === $hook ) {
+			wp_enqueue_script(
+				'pcgd-site-editor',
+				PCGD_PLUGIN_URL . 'assets/admin/site-editor.js',
+				array(
+					'wp-data',
+					'wp-dom-ready',
+					'wp-i18n',
+				),
+				PCGD_VERSION,
+				true
+			);
+
+			wp_enqueue_style(
+				'pcgd-admin',
+				PCGD_PLUGIN_URL . 'assets/css/admin.css',
+				array('dashicons'),
+				PCGD_VERSION
+			);
+		}
+
 	}
 	
 }

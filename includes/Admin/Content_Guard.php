@@ -26,6 +26,9 @@ class PCGD_Admin_Content_Guard {
         // @since 1.7.0
         $loader->add_filter( 'pre_trash_post', $this, 'block_protected_content_trash', 10, 3 );
         $loader->add_filter( 'pre_delete_post', $this, 'block_protected_content_deletion', 10, 3 );
+
+        // rest fields for clientguard
+        $loader->add_action( 'rest_api_init', $this, 'register_rest_fields' );
     }
 
     /**
@@ -83,6 +86,22 @@ class PCGD_Admin_Content_Guard {
             return $caps;
         }
 
+        /*
+        * Allow REST read requests.
+        *
+        * The Site Editor uses edit_post capability checks while retrieving
+        * pages for editing context. Blocking those checks would cause
+        * protected content to disappear from the page list.
+        */
+        if (
+            defined( 'REST_REQUEST' )
+            && REST_REQUEST
+            && isset( $_SERVER['REQUEST_METHOD'] )
+            && 'GET' === strtoupper( $_SERVER['REQUEST_METHOD'] )
+        ) {
+            return $caps;
+        }
+
         if ( empty( $args[0] ) || ! is_numeric( $args[0] ) ) {
             return $caps;
         }
@@ -132,6 +151,47 @@ class PCGD_Admin_Content_Guard {
         }
 
         return false;
+    }
+
+    /**
+     * Register ClientGuard REST fields.
+     *
+     * @since 1.7.0
+     * @return void
+     */
+    public function register_rest_fields() {
+
+        register_rest_field(
+            'page',
+            'pcgd_protected',
+            array(
+                'get_callback' => array( $this, 'get_rest_protection_status' ),
+                'schema'       => array(
+                    'description' => __( 'Whether this page is protected by ClientGuard.', 'plugiva-clientguard' ),
+                    'type'        => 'boolean',
+                    'context'     => array( 'edit' ),
+                    'readonly'    => true,
+                ),
+            )
+        );
+    }
+
+    /**
+     * Get the ClientGuard protection status for a REST page.
+     *
+     * @since 1.7.0
+     * @param array           $object     REST response object.
+     * @param string          $field_name REST field name.
+     * @param WP_REST_Request $request    REST request.
+     * @return bool
+     */
+    public function get_rest_protection_status( $object, $field_name, $request ) {
+
+        if ( empty( $object['id'] ) ) {
+            return false;
+        }
+
+        return $this->is_content_protected( (int) $object['id'] );
     }
 
 }

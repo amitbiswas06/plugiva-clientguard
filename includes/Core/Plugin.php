@@ -96,6 +96,13 @@ class PCGD_Core_Plugin {
 		$notices = new PCGD_Admin_Notices();
 		$notices->register( $this->loader );
 
+		// Content Guard.
+		// Content protection must also apply to REST and other
+		// non-traditional execution contexts.
+		// relocated @since 1.7.0
+		$content_guard = new PCGD_Admin_Content_Guard();
+		$content_guard->register( $this->loader );
+
 		// Stop here for non-admin requests.
 		if ( ! is_admin() ) {
 			return;
@@ -109,10 +116,6 @@ class PCGD_Core_Plugin {
 		// Menu Guard.
 		$menu_guard = new PCGD_Admin_Menu_Guard();
 		$menu_guard->register( $this->loader );
-
-		// Content Guard.
-		$content_guard = new PCGD_Admin_Content_Guard();
-		$content_guard->register( $this->loader );
 
 		// Dashboard Guard. @since 1.5.2
 		$dashboard_guard = new PCGD_Admin_Dashboard_Guard();
