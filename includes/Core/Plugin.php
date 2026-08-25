@@ -194,6 +194,42 @@ class PCGD_Core_Plugin {
 	}
 
 	/**
+	 * Blocks deletion of a protected WordPress option.
+	 *
+	 * This method is intended for use from the `delete_option` action,
+	 * which fires before WordPress performs the database deletion.
+	 *
+	 * @since 1.7.0
+	 *
+	 * @param string $option Option name that ClientGuard is protecting.
+	 * @return void
+	 */
+	public static function block_protected_option_deletion( $option ) {
+
+		$option = sanitize_key( $option );
+
+		wp_die(
+			esc_html(
+				sprintf(
+					/* translators: %s: Protected option name. */
+					__(
+						'The protected setting "%s" cannot be deleted while ClientGuard protection is active.',
+						'plugiva-clientguard'
+					),
+					$option
+				)
+			),
+			esc_html__(
+				'Action blocked',
+				'plugiva-clientguard'
+			),
+			array(
+				'response' => 403,
+			)
+		);
+	}
+
+	/**
 	 * Run the plugin.
 	 */
 	public function run() {
