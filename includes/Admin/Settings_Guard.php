@@ -21,51 +21,15 @@ class PCGD_Admin_Settings_Guard {
      * @param PCGD_Core_Loader $loader Loader instance.
      */
     public function register( $loader ) {
-        // Hooks will be added in next steps.
-
-        $loader->add_filter( 'pre_update_option_siteurl', $this, 'block_siteurl_update', 10, 2 );
-
-        $loader->add_filter( 'pre_update_option_home', $this, 'block_home_update', 10, 2 );
 
         // Redirect direct access to the permalink page when Client Mode is ON
         $loader->add_action( 'load-options-permalink.php', $this, 'block_permalink_page' );
 
-        /**
-         * Filters the permalink options protected in Client Mode.
-         *
-         * @since 1.7.0
-         * @param string[] $protected_options Option names to protect.
-         */
-        $protected_options = apply_filters(
-            'pcgd_protected_permalink_options',
-            array(
-                'permalink_structure',
-                'category_base',
-                'tag_base',
-            )
-        );
-
-        if ( is_array( $protected_options ) ) {
-            foreach ( $protected_options as $option ) {
-                if ( ! is_string( $option ) ) {
-                    continue;
-                }
-
-                $option = sanitize_key( $option );
-
-                if ( empty( $option ) ) {
-                    continue;
-                }
-
-                $loader->add_filter(
-                    'pre_update_option_' . $option,
-                    $this,
-                    'block_permalink_structure_update',
-                    10,
-                    2
-                );
-            }
+        foreach ( $this->get_protected_permalink_options() as $option ) {
+            $loader->add_filter( 'pre_update_option_' . $option, $this, 'block_permalink_structure_update', 10, 2 );
         }
+
+        $loader->add_action( 'delete_option', $this, 'protect_permalink_option_delete', 10, 1 );
 
         // block access to AI Connectors page in Client Mode.
         $loader->add_action( 'load-options-connectors.php', $this, 'block_connectors_page' ); // @since 1.5.0
@@ -76,7 +40,13 @@ class PCGD_Admin_Settings_Guard {
         // Suspend WordPress AI runtime features in Client Mode.
         $loader->add_filter( 'wpai_features_enabled', $this, 'filter_ai_runtime_enabled' ); // @since 1.5.0
 
+        $loader->add_filter( 'pre_update_option_siteurl', $this, 'block_siteurl_update', 10, 2 );
+
+        $loader->add_filter( 'pre_update_option_home', $this, 'block_home_update', 10, 2 );
+
         $loader->add_action( 'admin_head', $this, 'hide_site_url_fields_css' ); // @since 1.4.0
+
+        $loader->add_action( 'delete_option', $this, 'protect_site_url_option_delete', 10, 1 );
     }
 
     /**
@@ -93,6 +63,35 @@ class PCGD_Admin_Settings_Guard {
         }
 
         return PCGD_Core_Plugin::is_client_mode();
+    }
+
+    /**
+     * Helper
+     * Get permalink options protected in Client Mode.
+     *
+     * @return string[] Protected option names.
+     * @since 1.7.0
+     */
+    private function get_protected_permalink_options() {
+
+        $protected_options = apply_filters(
+            'pcgd_protected_permalink_options',
+            array(
+                'permalink_structure',
+                'category_base',
+                'tag_base',
+            )
+        );
+
+        if ( ! is_array( $protected_options ) ) {
+            return array();
+        }
+
+        $protected_options = array_filter(
+            array_map( 'sanitize_key', $protected_options )
+        );
+
+        return array_values( array_unique( $protected_options ) );
     }
 
     /**
@@ -130,6 +129,32 @@ class PCGD_Admin_Settings_Guard {
         }
 
         return $new_value;
+    }
+
+    /**
+     * Prevent protected permalink options from being deleted in Client Mode.
+     *
+     * @param string $option Name of the option being deleted.
+     * @return void
+     * @since 1.7.0
+     */
+    public function protect_permalink_option_delete( $option ) {
+
+        $option = sanitize_key( $option );
+
+        if ( '' === $option ) {
+            return;
+        }
+
+        if ( ! $this->is_client_mode_protection_active() ) {
+            return;
+        }
+
+        if ( ! in_array( $option, $this->get_protected_permalink_options(), true ) ) {
+            return;
+        }
+
+        PCGD_Core_Plugin::block_protected_option_deletion( $option );
     }
 
     /**
@@ -190,9 +215,15 @@ class PCGD_Admin_Settings_Guard {
         return $enabled;
     }
 
+    /********************************************************************************
+     * SITE URLS
+    ********************************************************************************/
+
     /**
+     * Helper
      * Check if site URL protection is active.
      *
+     * @since 1.7.0
      * @return bool
      */
     public function is_site_url_protected() {
@@ -280,6 +311,37 @@ class PCGD_Admin_Settings_Guard {
                 display: none !important;
             }
         </style>';
+    }
+
+    /**
+     * Prevent protected Site URL options from being deleted.
+     *
+     * WordPress does not provide a cancellable filter before an option is
+     * deleted. The `delete_option` action fires before the database row is
+     * removed, allowing ClientGuard to stop execution before the deletion
+     * occurs.
+     *
+     * @param string $option Name of the option being deleted.
+     * @return void
+     * @since 1.7.0
+     */
+    public function protect_site_url_option_delete( $option ) {
+
+        $option = sanitize_key( $option );
+
+        if ( '' === $option ) {
+            return;
+        }
+
+        if ( ! in_array( $option, array( 'siteurl', 'home' ), true ) ) {
+            return;
+        }
+
+        if ( ! $this->is_site_url_protected() ) {
+            return;
+        }
+
+        PCGD_Core_Plugin::block_protected_option_deletion( $option );
     }
 
 }
