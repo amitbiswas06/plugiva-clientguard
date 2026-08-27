@@ -25,11 +25,13 @@ class PCGD_Admin_Appearance_Guard {
 
         $loader->add_filter( 'user_has_cap', $this, 'block_appearance_caps', 10, 4 );
 
-		$loader->add_action( 'admin_head', $this, 'hide_site_identity_fields_css' );
+		$loader->add_filter( 'pre_update_option_sidebars_widgets', $this, 'protect_sidebars_widgets_update', 10, 2 );
+
+		$loader->add_action( 'delete_option', $this, 'protect_sidebars_widgets_delete', 10, 1 );
 
 		// @since 1.7.0
-		// any future `$loader` will go above.
-		// Only add these for protected options.
+		// Add any future general Appearance protection hooks above.
+		// The hooks below are only for protected Site Identity options.
 		$protected_options = $this->get_protected_site_identity_options();
 
 		if ( empty( $protected_options ) ) {
@@ -42,22 +44,25 @@ class PCGD_Admin_Appearance_Guard {
 
 		$loader->add_action( 'delete_option', $this, 'protect_site_identity_option_delete', 10, 1 );
 
+		$loader->add_action( 'admin_head', $this, 'hide_site_identity_fields_css' );
+
 		// Don't add anything below.
 
 	}
 
 	/**
-	 * Determines whether Site Identity protection is active.
+	 * Helper
+	 * Determines whether Appearance protection is active.
 	 *
-	 * Site Identity protection is active when Appearance protection is enabled
+	 * Appearance protection is active when Appearance management is locked
 	 * or Client Mode is active. Protection can be bypassed for a trusted user
 	 * when ClientGuard explicitly allows it.
 	 *
 	 * @param int $user_id Optional user ID to check for bypass protection.
-	 * @return bool True when Site Identity protection is active, otherwise false.
+	 * @return bool True when Appearance protection is active, otherwise false.
 	 * @since 1.7.0
 	 */
-	public function is_site_identity_protected( $user_id = 0 ) {
+	public function is_appearance_protection_active( $user_id = 0 ) {
 
 		if ( PCGD_Core_Plugin::should_bypass_protection( $user_id ) ) {
 			return false;
@@ -85,7 +90,7 @@ class PCGD_Admin_Appearance_Guard {
 	 */
 	public function block_appearance_caps( $allcaps, $caps, $args, $user ) {
 
-		if ( ! $this->is_site_identity_protected( $user->ID ) ) {
+		if ( ! $this->is_appearance_protection_active( $user->ID ) ) {
 			return $allcaps;
 		}
 
@@ -94,6 +99,51 @@ class PCGD_Admin_Appearance_Guard {
 		}
 
 		return $allcaps;
+	}
+
+	/**
+	 * Prevents sidebar widget assignments from being updated.
+	 *
+	 * @param mixed $value     New option value.
+	 * @param mixed $old_value Previous option value.
+	 * @return mixed New value when protection is inactive, otherwise previous value.
+	 * @since 1.7.0
+	 */
+	public function protect_sidebars_widgets_update( $value, $old_value ) {
+
+		if ( ! $this->is_appearance_protection_active() ) {
+			return $value;
+		}
+
+		return $old_value;
+	}
+
+	/**
+	 * Prevents sidebar widget assignments from being deleted.
+	 *
+	 * WordPress does not provide a cancellable filter before an option is
+	 * deleted. The `delete_option` action fires before the database row is
+	 * removed, allowing ClientGuard to stop execution before the deletion
+	 * occurs.
+	 *
+	 * @since 1.7.0
+	 *
+	 * @param string $option Name of the option being deleted.
+	 * @return void
+	 */
+	public function protect_sidebars_widgets_delete( $option ) {
+
+		$option = sanitize_key( $option );
+
+		if ( 'sidebars_widgets' !== $option ) {
+			return;
+		}
+
+		if ( ! $this->is_appearance_protection_active() ) {
+			return;
+		}
+
+		PCGD_Core_Plugin::block_protected_option_deletion( $option );
 	}
 
 	/**
@@ -149,7 +199,7 @@ class PCGD_Admin_Appearance_Guard {
 	 */
 	public function protect_site_identity_option_update( $value, $old_value ) {
 
-		if ( ! $this->is_site_identity_protected() ) {
+		if ( ! $this->is_appearance_protection_active() ) {
 			return $value;
 		}
 
@@ -183,7 +233,7 @@ class PCGD_Admin_Appearance_Guard {
 			return;
 		}
 
-		if ( ! $this->is_site_identity_protected() ) {
+		if ( ! $this->is_appearance_protection_active() ) {
 			return;
 		}
 
@@ -199,7 +249,7 @@ class PCGD_Admin_Appearance_Guard {
 	public function hide_site_identity_fields_css() {
 
 		// Only when protection is active.
-		if ( ! $this->is_site_identity_protected() ) {
+		if ( ! $this->is_appearance_protection_active() ) {
 			return;
 		}
 
