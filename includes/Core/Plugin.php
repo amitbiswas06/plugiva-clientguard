@@ -31,6 +31,7 @@ class PCGD_Core_Plugin {
 
 		require_once PCGD_PLUGIN_PATH . 'includes/Core/Loader.php';
 		require_once PCGD_PLUGIN_PATH . 'includes/Core/Admin_Renderer.php'; // @since 1.1.0
+		require_once PCGD_PLUGIN_PATH . 'includes/Core/Settings_Events.php'; // @since 1.7.0
 
 		require_once PCGD_PLUGIN_PATH . 'includes/Admin/Settings.php';
 		require_once PCGD_PLUGIN_PATH . 'includes/Admin/Menu_Guard.php';
@@ -72,6 +73,13 @@ class PCGD_Core_Plugin {
 		 *
 		 * @since 1.5.0
 		 */
+
+		// Settings Events.
+		// Observes stored ClientGuard settings changes and dispatches
+		// internal ClientGuard actions.
+		// @since 1.7.0
+		$settings_events = new PCGD_Core_Settings_Events();
+		$settings_events->register_hooks( $this->loader );
 
 		// Theme Guard.
 		$theme_guard = new PCGD_Admin_Theme_Guard();

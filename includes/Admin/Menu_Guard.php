@@ -93,7 +93,7 @@ class PCGD_Admin_Menu_Guard {
 			return $show;
 		}
 
-		$settings = get_option( 'pcgd_settings', array() );
+		$settings = get_option( self::OPTION_NAME, array() );
 
 		// Hide if selected in menu hiding
 		if ( ! empty( $settings['hide_menus'] ) && in_array( 'acf', $settings['hide_menus'], true ) ) {

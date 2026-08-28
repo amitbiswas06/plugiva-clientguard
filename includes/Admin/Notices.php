@@ -49,7 +49,7 @@ class PCGD_Admin_Notices {
 	 */
 	public function remove_hidden_admin_bar_nodes( $wp_admin_bar ) {
 
-		$settings = get_option( 'pcgd_settings', array() );
+		$settings = get_option( self::OPTION_NAME, array() );
 
 		// Mirror hidden admin menus in the admin bar.
 		$hidden = ! empty( $settings['hide_menus'] )
@@ -301,10 +301,10 @@ class PCGD_Admin_Notices {
 
 			check_admin_referer( 'pcgd_enable_client_mode' );
 
-			$settings = get_option( 'pcgd_settings', array() );
+			$settings = get_option( self::OPTION_NAME, array() );
 			$settings['client_mode'] = true;
 
-			update_option( 'pcgd_settings', $settings );
+			update_option( self::OPTION_NAME, $settings );
 
 			// Redirect to settings page
 			wp_safe_redirect( admin_url( 'admin.php?page=plugiva-clientguard' ) );
