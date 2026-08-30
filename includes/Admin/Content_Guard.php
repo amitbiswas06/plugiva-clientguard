@@ -131,6 +131,10 @@ class PCGD_Admin_Content_Guard {
             return $trash;
         }
 
+        // Notify ClientGuard Sentinel that protected content trashing was blocked.
+        // @since 1.7.0
+        do_action( 'pcgd_protection_blocked', 'content_guard', 'trash', $post->ID );
+
         return false;
     }
 
@@ -149,6 +153,10 @@ class PCGD_Admin_Content_Guard {
         if ( ! $this->is_content_protected( $post->ID ) ) {
             return $check;
         }
+
+        // Notify ClientGuard Sentinel that protected content deletion was blocked.
+        // @since 1.7.0
+        do_action( 'pcgd_protection_blocked', 'content_guard', 'delete', $post->ID );
 
         return false;
     }

@@ -99,6 +99,10 @@ class PCGD_Admin_Theme_Installation_Sentinel {
 			true
 		);
 
+		// Notify ClientGuard Sentinel that a protected theme installation was blocked.
+		// @since 1.7.0
+		do_action( 'pcgd_protection_blocked', 'theme_guard', 'install', null );
+
 		/*
 		 * Installation must never proceed, regardless of whether
 		 * temporary-directory cleanup succeeded.

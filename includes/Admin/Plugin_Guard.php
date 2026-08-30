@@ -166,6 +166,21 @@ class PCGD_Admin_Plugin_Guard {
 		// Preserve the last accepted state when activation or deactivation
 		// is restricted by ClientGuard.
 		if ( ! empty( $added ) || ! empty( $removed ) ) {
+
+			foreach ( $added as $plugin_file ) {
+
+				// Notify ClientGuard Sentinel that a protected plugin activation was blocked.
+				// @since 1.7.0
+				do_action( 'pcgd_protection_blocked', 'plugin_guard', 'activate', $plugin_file );
+			}
+
+			foreach ( $removed as $plugin_file ) {
+
+				// Notify ClientGuard Sentinel that a protected plugin deactivation was blocked.
+				// @since 1.7.0
+				do_action( 'pcgd_protection_blocked', 'plugin_guard', 'deactivate', $plugin_file );
+			}
+
 			return $old_value;
 		}
 

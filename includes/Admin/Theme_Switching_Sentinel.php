@@ -54,6 +54,10 @@ class PCGD_Admin_Theme_Switching_Sentinel {
 		if ( ! $this->guard->is_theme_operations_protected() ) {
 			return $met_requirements;
 		}
+		
+		// Notify ClientGuard Sentinel that a protected theme switch was blocked.
+		// @since 1.7.0
+		do_action( 'pcgd_protection_blocked', 'theme_guard', 'switch', $stylesheet );
 
 		return new WP_Error(
 			'pcgd_theme_switching_blocked',

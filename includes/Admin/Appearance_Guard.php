@@ -25,7 +25,7 @@ class PCGD_Admin_Appearance_Guard {
 
         $loader->add_filter( 'user_has_cap', $this, 'block_appearance_caps', 10, 4 );
 
-		$loader->add_filter( 'pre_update_option_sidebars_widgets', $this, 'protect_sidebars_widgets_update', 10, 2 );
+		$loader->add_filter( 'pre_update_option_sidebars_widgets', $this, 'protect_sidebars_widgets_update', 10, 3 );
 
 		$loader->add_action( 'delete_option', $this, 'protect_sidebars_widgets_delete', 10, 1 );
 
@@ -39,7 +39,7 @@ class PCGD_Admin_Appearance_Guard {
 		}
 
 		foreach ( $protected_options as $option ) {
-			$loader->add_filter( 'pre_update_option_' . $option, $this, 'protect_site_identity_option_update', 10, 2 );
+			$loader->add_filter( 'pre_update_option_' . $option, $this, 'protect_site_identity_option_update', 10, 3 );
 		}
 
 		$loader->add_action( 'delete_option', $this, 'protect_site_identity_option_delete', 10, 1 );
@@ -102,18 +102,22 @@ class PCGD_Admin_Appearance_Guard {
 	}
 
 	/**
-	 * Prevents sidebar widget assignments from being updated.
+	 * Prevents protected sidebar widgets from being updated.
 	 *
-	 * @param mixed $value     New option value.
-	 * @param mixed $old_value Previous option value.
+	 * @param mixed  $value     New option value.
+	 * @param mixed  $old_value Previous option value.
+	 * @param string $option    Protected option name.
 	 * @return mixed New value when protection is inactive, otherwise previous value.
-	 * @since 1.7.0
 	 */
-	public function protect_sidebars_widgets_update( $value, $old_value ) {
+	public function protect_sidebars_widgets_update( $value, $old_value, $option ) {
 
 		if ( ! $this->is_appearance_protection_active() ) {
 			return $value;
 		}
+
+		// Notify ClientGuard Sentinel that a protected sidebar widget update was blocked.
+		// @since 1.7.0
+		do_action( 'pcgd_protection_blocked', 'appearance_guard', 'update', $option );
 
 		return $old_value;
 	}
@@ -142,6 +146,10 @@ class PCGD_Admin_Appearance_Guard {
 		if ( ! $this->is_appearance_protection_active() ) {
 			return;
 		}
+
+		// Notify ClientGuard Sentinel that a protected sidebar widget deletion was blocked.
+		// @since 1.7.0
+		do_action( 'pcgd_protection_blocked', 'appearance_guard', 'delete', $option );
 
 		PCGD_Core_Plugin::block_protected_option_deletion( $option );
 	}
@@ -193,15 +201,20 @@ class PCGD_Admin_Appearance_Guard {
 	/**
 	 * Prevents protected Site Identity options from being updated.
 	 *
-	 * @param mixed $value     New option value.
-	 * @param mixed $old_value Previous option value.
+	 * @param mixed  $value     New option value.
+	 * @param mixed  $old_value Previous option value.
+	 * @param string $option    Protected Site Identity option name.
 	 * @return mixed New value when protection is inactive, otherwise previous value.
 	 */
-	public function protect_site_identity_option_update( $value, $old_value ) {
+	public function protect_site_identity_option_update( $value, $old_value, $option ) {
 
 		if ( ! $this->is_appearance_protection_active() ) {
 			return $value;
 		}
+
+		// Notify ClientGuard Sentinel that a protected Site Identity update was blocked.
+		// @since 1.7.0
+		do_action( 'pcgd_protection_blocked', 'appearance_guard', 'update', $option );
 
 		return $old_value;
 	}
@@ -236,6 +249,10 @@ class PCGD_Admin_Appearance_Guard {
 		if ( ! $this->is_appearance_protection_active() ) {
 			return;
 		}
+
+		// Notify ClientGuard Sentinel that a protected Site Identity deletion was blocked.
+		// @since 1.7.0
+		do_action( 'pcgd_protection_blocked', 'appearance_guard', 'delete', $option );
 
 		PCGD_Core_Plugin::block_protected_option_deletion( $option );
 	}

@@ -26,7 +26,7 @@ class PCGD_Admin_Settings_Guard {
         $loader->add_action( 'load-options-permalink.php', $this, 'block_permalink_page' );
 
         foreach ( $this->get_protected_permalink_options() as $option ) {
-            $loader->add_filter( 'pre_update_option_' . $option, $this, 'block_permalink_structure_update', 10, 2 );
+            $loader->add_filter( 'pre_update_option_' . $option, $this, 'block_permalink_structure_update', 10, 3 );
         }
 
         $loader->add_action( 'delete_option', $this, 'protect_permalink_option_delete', 10, 1 );
@@ -40,9 +40,9 @@ class PCGD_Admin_Settings_Guard {
         // Suspend WordPress AI runtime features in Client Mode.
         $loader->add_filter( 'wpai_features_enabled', $this, 'filter_ai_runtime_enabled' ); // @since 1.5.0
 
-        $loader->add_filter( 'pre_update_option_siteurl', $this, 'block_siteurl_update', 10, 2 );
+        $loader->add_filter( 'pre_update_option_siteurl', $this, 'block_siteurl_update', 10, 3 );
 
-        $loader->add_filter( 'pre_update_option_home', $this, 'block_home_update', 10, 2 );
+        $loader->add_filter( 'pre_update_option_home', $this, 'block_home_update', 10, 3 );
 
         $loader->add_action( 'admin_head', $this, 'hide_site_url_fields_css' ); // @since 1.4.0
 
@@ -113,11 +113,12 @@ class PCGD_Admin_Settings_Guard {
     /**
      * Block protected permalink option updates in Client Mode.
      *
-     * @param mixed $new_value New value.
-     * @param mixed $old_value Old value.
+     * @param mixed  $new_value New value.
+     * @param mixed  $old_value Old value.
+     * @param string $option    Option name.
      * @return mixed
      */
-    public function block_permalink_structure_update( $new_value, $old_value ) {
+    public function block_permalink_structure_update( $new_value, $old_value, $option ) {
 
         if ( ! $this->is_client_mode_protection_active() ) {
             return $new_value;
@@ -125,6 +126,11 @@ class PCGD_Admin_Settings_Guard {
 
         // Only block if an actual change is attempted.
         if ( $new_value !== $old_value ) {
+
+            // Notify ClientGuard Sentinel that a protected permalink option update was blocked.
+            // @since 1.7.0
+            do_action( 'pcgd_protection_blocked', 'settings_guard', 'update', $option );
+
             return $old_value;
         }
 
@@ -153,6 +159,10 @@ class PCGD_Admin_Settings_Guard {
         if ( ! in_array( $option, $this->get_protected_permalink_options(), true ) ) {
             return;
         }
+
+        // Notify ClientGuard Sentinel that a protected permalink option deletion was blocked.
+        // @since 1.7.0
+        do_action( 'pcgd_protection_blocked', 'settings_guard', 'delete', $option );
 
         PCGD_Core_Plugin::block_protected_option_deletion( $option );
     }
@@ -249,9 +259,10 @@ class PCGD_Admin_Settings_Guard {
      *
      * @param string $new_value New value.
      * @param string $old_value Old value.
+     * @param string $option    Option name.
      * @return string
      */
-    public function block_siteurl_update( $new_value, $old_value ) {
+    public function block_siteurl_update( $new_value, $old_value, $option ) {
 
         if ( ! $this->is_site_url_protected() ) {
             return $new_value;
@@ -259,6 +270,11 @@ class PCGD_Admin_Settings_Guard {
 
         // Only block if actual change attempted
         if ( $new_value !== $old_value ) {
+
+            // Notify ClientGuard Sentinel that a protected Site URL option update was blocked.
+            // @since 1.7.0
+            do_action( 'pcgd_protection_blocked', 'settings_guard', 'update', $option );
+
             return $old_value;
         }
 
@@ -270,15 +286,21 @@ class PCGD_Admin_Settings_Guard {
      *
      * @param string $new_value New value.
      * @param string $old_value Old value.
+     * @param string $option    Option name.
      * @return string
      */
-    public function block_home_update( $new_value, $old_value ) {
+    public function block_home_update( $new_value, $old_value, $option ) {
 
         if ( ! $this->is_site_url_protected() ) {
             return $new_value;
         }
 
         if ( $new_value !== $old_value ) {
+
+            // Notify ClientGuard Sentinel that a protected Site URL option update was blocked.
+            // @since 1.7.0
+            do_action( 'pcgd_protection_blocked', 'settings_guard', 'update', $option );
+
             return $old_value;
         }
 
@@ -340,6 +362,10 @@ class PCGD_Admin_Settings_Guard {
         if ( ! $this->is_site_url_protected() ) {
             return;
         }
+
+        // Notify ClientGuard Sentinel that a protected Site URL option deletion was blocked.
+        // @since 1.7.0
+        do_action( 'pcgd_protection_blocked', 'settings_guard', 'delete', $option );
 
         PCGD_Core_Plugin::block_protected_option_deletion( $option );
     }

@@ -56,6 +56,11 @@ class PCGD_Theme_Filesystem_Proxy {
 			$normalized_file === untrailingslashit( $normalized_dir ) ||
 			strpos( $normalized_file, $normalized_dir ) === 0
 		) {
+			
+			// Notify ClientGuard Sentinel that a protected theme deletion was blocked.
+			// @since 1.7.0
+			do_action( 'pcgd_protection_blocked', 'theme_guard', 'delete', $this->stylesheet );
+
 			return false;
 		}
 
