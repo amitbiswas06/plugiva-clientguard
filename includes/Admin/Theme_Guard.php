@@ -82,16 +82,15 @@ class PCGD_Admin_Theme_Guard {
 	}
 
 	/**
-	 * Determine whether theme operations are protected.
+	 * Determine whether theme operation protection is enabled.
+	 *
+	 * This checks the effective protection state without considering
+	 * whether the current user is exempt from ClientGuard restrictions.
 	 *
 	 * @since 1.7.0
 	 * @return bool
 	 */
-	public function is_theme_operations_protected() {
-
-		if ( PCGD_Core_Plugin::should_bypass_protection() ) {
-			return false;
-		}
+	public function is_theme_operation_protection_enabled() {
 
 		$settings = get_option( self::OPTION_NAME, array() );
 
@@ -105,5 +104,20 @@ class PCGD_Admin_Theme_Guard {
 		}
 
 		return $lock;
+	}
+
+	/**
+	 * Determine whether theme operations are protected.
+	 *
+	 * @since 1.7.0
+	 * @return bool
+	 */
+	public function is_theme_operations_protected() {
+
+		if ( PCGD_Core_Plugin::should_bypass_protection() ) {
+			return false;
+		}
+
+		return $this->is_theme_operation_protection_enabled();
 	}
 }

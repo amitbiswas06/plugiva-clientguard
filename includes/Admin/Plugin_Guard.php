@@ -134,23 +134,23 @@ class PCGD_Admin_Plugin_Guard {
 	 */
 	public function guard_active_plugins_transition( $new_value, $old_value, $option ) {
 
-		// Never restrict network super admins.
-		if ( PCGD_Core_Plugin::should_bypass_protection() ) {
-			return $new_value;
-		}
-
 		$settings = get_option( self::OPTION_NAME );
 
 		$lock_install = ! empty( $settings['lock_plugin_install'] );
 		$allow_toggle = ! empty( $settings['allow_plugin_toggle'] );
 
-		// Client Mode override.
+		/*
+		* Client Mode protects all plugin operations and disables
+		* plugin activation/deactivation toggling.
+		*/
 		if ( PCGD_Core_Plugin::is_client_mode() ) {
 			$lock_install = true;
 			$allow_toggle = false;
 		}
 
-		// Plugin toggling is allowed.
+		/*
+		* Plugin toggling is allowed.
+		*/
 		if ( ! $lock_install || $allow_toggle ) {
 			return $new_value;
 		}
@@ -163,28 +163,76 @@ class PCGD_Admin_Plugin_Guard {
 		$added   = array_diff( $new_value, $old_value );
 		$removed = array_diff( $old_value, $new_value );
 
-		// Preserve the last accepted state when activation or deactivation
-		// is restricted by ClientGuard.
-		if ( ! empty( $added ) || ! empty( $removed ) ) {
+		if ( empty( $added ) && empty( $removed ) ) {
+			return $new_value;
+		}
+
+		/*
+		* Network Super Admins may bypass active plugin protection.
+		*/
+		if ( PCGD_Core_Plugin::should_bypass_protection() ) {
 
 			foreach ( $added as $plugin_file ) {
 
-				// Notify ClientGuard Sentinel that a protected plugin activation was blocked.
+				// Notify ClientGuard Sentinel that protected plugin activation was bypassed.
 				// @since 1.7.0
-				do_action( 'pcgd_protection_blocked', 'plugin_guard', 'activate', $plugin_file );
+				do_action( 'pcgd_protection_bypassed', 'plugin_guard', 'activate', $plugin_file );
 			}
 
 			foreach ( $removed as $plugin_file ) {
 
-				// Notify ClientGuard Sentinel that a protected plugin deactivation was blocked.
+				// Notify ClientGuard Sentinel that protected plugin deactivation was bypassed.
 				// @since 1.7.0
-				do_action( 'pcgd_protection_blocked', 'plugin_guard', 'deactivate', $plugin_file );
+				do_action( 'pcgd_protection_bypassed', 'plugin_guard', 'deactivate', $plugin_file );
 			}
 
-			return $old_value;
+			return $new_value;
 		}
 
-		return $new_value;
+		/*
+		* Preserve the last accepted state when activation or deactivation
+		* is restricted by ClientGuard.
+		*/
+		foreach ( $added as $plugin_file ) {
+
+			// Notify ClientGuard Sentinel that protected plugin activation was blocked.
+			// @since 1.7.0
+			do_action( 'pcgd_protection_blocked', 'plugin_guard', 'activate', $plugin_file );
+		}
+
+		foreach ( $removed as $plugin_file ) {
+
+			// Notify ClientGuard Sentinel that protected plugin deactivation was blocked.
+			// @since 1.7.0
+			do_action( 'pcgd_protection_blocked', 'plugin_guard', 'deactivate', $plugin_file );
+		}
+
+		return $old_value;
+	}
+
+	/**
+	 * Determine whether plugin operation protection is enabled.
+	 *
+	 * This checks the effective protection state without considering
+	 * whether the current user is exempt from ClientGuard restrictions.
+	 *
+	 * @since 1.7.0
+	 * @return bool
+	 */
+	public function is_plugin_operation_protection_enabled() {
+
+		$settings = get_option( self::OPTION_NAME, array() );
+
+		$lock = ! empty( $settings['lock_plugin_install'] );
+
+		/*
+		* Client Mode protects all plugin operations.
+		*/
+		if ( PCGD_Core_Plugin::is_client_mode() ) {
+			$lock = true;
+		}
+
+		return $lock;
 	}
 
 	/**
@@ -199,18 +247,7 @@ class PCGD_Admin_Plugin_Guard {
 			return false;
 		}
 
-		$settings = get_option( self::OPTION_NAME, array() );
-
-		$lock = ! empty( $settings['lock_plugin_install'] );
-
-		/*
-		* Client Mode protects all plugin operations.
-		*/
-		if ( PCGD_Core_Plugin::is_client_mode() ) {
-			$lock = true;
-		}
-
-		return $lock;
+		return $this->is_plugin_operation_protection_enabled();
 	}
 	
 }

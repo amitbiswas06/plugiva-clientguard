@@ -51,21 +51,9 @@ class PCGD_Admin_Theme_Installation_Sentinel {
 	 * @param array       $hook_extra    Upgrade context.
 	 * @return string|WP_Error
 	 */
-	public function guard_theme_installation(
-		$source,
-		$remote_source,
-		$upgrader,
-		$hook_extra
-	) {
+	public function guard_theme_installation( $source, $remote_source, $upgrader, $hook_extra ) {
 
-		/*
-		 * Only act when theme operations are protected.
-		 */
-		if ( ! $this->guard->is_theme_operations_protected() ) {
-			return $source;
-		}
-
-		/*
+		/**
 		 * Only target fresh theme installations.
 		 */
 		if (
@@ -78,7 +66,24 @@ class PCGD_Admin_Theme_Installation_Sentinel {
 			return $source;
 		}
 
-		/*
+		$target = basename( untrailingslashit( wp_normalize_path( $source ) ) );
+
+		/**
+		 * Only act when theme operations are protected.
+		 */
+		if ( ! $this->guard->is_theme_operations_protected() ) {
+
+			if ( $this->guard->is_theme_operation_protection_enabled() && PCGD_Core_Plugin::should_bypass_protection() ) {
+
+				// Notify ClientGuard Sentinel that a protected theme installation was bypassed.
+				// @since 1.7.0
+				do_action( 'pcgd_protection_bypassed', 'theme_guard', 'install', $target );
+			}
+
+			return $source;
+		}
+
+		/**
 		 * Create the installation-blocked error.
 		 */
 		$error = new WP_Error(
@@ -86,7 +91,7 @@ class PCGD_Admin_Theme_Installation_Sentinel {
 			__( 'Theme installation is not allowed.', 'plugiva-clientguard' )
 		);
 
-		/*
+		/**
 		 * Remove the unpacked temporary installation package.
 		 *
 		 * This is the working directory WordPress would normally
@@ -101,9 +106,9 @@ class PCGD_Admin_Theme_Installation_Sentinel {
 
 		// Notify ClientGuard Sentinel that a protected theme installation was blocked.
 		// @since 1.7.0
-		do_action( 'pcgd_protection_blocked', 'theme_guard', 'install', null );
+		do_action( 'pcgd_protection_blocked', 'theme_guard', 'install', $target );
 
-		/*
+		/**
 		 * Installation must never proceed, regardless of whether
 		 * temporary-directory cleanup succeeded.
 		 */

@@ -51,19 +51,7 @@ class PCGD_Admin_Plugin_Installation_Sentinel {
 	 * @param array     $hook_extra    Upgrade context.
 	 * @return string|WP_Error
 	 */
-	public function guard_plugin_installation(
-		$source,
-		$remote_source,
-		$upgrader,
-		$hook_extra
-	) {
-
-		/*
-		 * Only act when plugin operations are protected.
-		 */
-		if ( ! $this->guard->is_plugin_operations_protected() ) {
-			return $source;
-		}
+	public function guard_plugin_installation( $source, $remote_source, $upgrader, $hook_extra ) {
 
 		/*
 		 * Only target fresh plugin installations.
@@ -77,6 +65,23 @@ class PCGD_Admin_Plugin_Installation_Sentinel {
 			||
 			'install' !== $hook_extra['action']
 		) {
+			return $source;
+		}
+
+		$target = basename( untrailingslashit( wp_normalize_path( $source ) ) );
+	
+		/*
+		 * Only act when plugin operations are protected.
+		 */
+		if ( ! $this->guard->is_plugin_operations_protected() ) {
+
+			if ( $this->guard->is_plugin_operation_protection_enabled() && PCGD_Core_Plugin::should_bypass_protection() ) {
+
+				// Notify ClientGuard Sentinel that a protected plugin installation was bypassed.
+				// @since 1.7.0
+				do_action( 'pcgd_protection_bypassed', 'plugin_guard', 'install', $target );
+			}
+
 			return $source;
 		}
 
@@ -103,7 +108,7 @@ class PCGD_Admin_Plugin_Installation_Sentinel {
 
 		// Notify ClientGuard Sentinel that a protected plugin installation was blocked.
 		// @since 1.7.0
-		do_action( 'pcgd_protection_blocked', 'plugin_guard', 'install', null );
+		do_action( 'pcgd_protection_blocked', 'plugin_guard', 'install', $target );
 
 		/*
 		* Installation must never proceed, regardless of whether

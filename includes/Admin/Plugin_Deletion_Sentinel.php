@@ -112,6 +112,14 @@ class PCGD_Admin_Plugin_Deletion_Sentinel {
 	public function protect_uninstall( $plugin_file, $network_wide ) {
 
 		if ( ! $this->is_protected() ) {
+
+			if ( $this->guard->is_plugin_operation_protection_enabled() && PCGD_Core_Plugin::should_bypass_protection() ) {
+
+				// Notify ClientGuard Sentinel that a protected plugin deletion was bypassed.
+				// @since 1.7.0
+				do_action( 'pcgd_protection_bypassed', 'plugin_guard', 'delete', plugin_basename( $plugin_file ) );
+			}
+
 			return;
 		}
 
@@ -179,6 +187,14 @@ class PCGD_Admin_Plugin_Deletion_Sentinel {
 	public function intercept_plugin_deletion( $plugin_file ) {
 
 		if ( ! $this->is_protected() ) {
+
+			if ( $this->guard->is_plugin_operation_protection_enabled() && PCGD_Core_Plugin::should_bypass_protection() ) {
+
+				// Notify ClientGuard Sentinel that a protected plugin deletion was bypassed.
+				// @since 1.7.0
+				do_action( 'pcgd_protection_bypassed', 'plugin_guard', 'delete', plugin_basename( $plugin_file ) );
+			}
+
 			return;
 		}
 

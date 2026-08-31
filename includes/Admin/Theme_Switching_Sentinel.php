@@ -52,6 +52,14 @@ class PCGD_Admin_Theme_Switching_Sentinel {
 	public function guard_theme_switching( $met_requirements, $stylesheet ) {
 
 		if ( ! $this->guard->is_theme_operations_protected() ) {
+
+			if ( $this->guard->is_theme_operation_protection_enabled() && PCGD_Core_Plugin::should_bypass_protection() ) {
+
+				// Notify ClientGuard Sentinel that a protected theme switch was bypassed.
+				// @since 1.7.0
+				do_action( 'pcgd_protection_bypassed', 'theme_guard', 'switch', $stylesheet );
+			}
+
 			return $met_requirements;
 		}
 		
