@@ -29,6 +29,10 @@ class PCGD_Admin_Appearance_Guard {
 
 		$loader->add_action( 'delete_option', $this, 'protect_sidebars_widgets_delete', 10, 1 );
 
+		$loader->add_filter( 'pre_update_option_widget_block', $this, 'protect_widget_block_update', 10, 3 );
+
+		$loader->add_action( 'delete_option', $this, 'protect_widget_block_delete', 10, 1 );
+
 		// @since 1.7.0
 		// Add any future general Appearance protection hooks above.
 		// The hooks below are only for protected Site Identity options.
@@ -51,6 +55,28 @@ class PCGD_Admin_Appearance_Guard {
 	}
 
 	/**
+	 * Determine whether Appearance protection is enabled.
+	 *
+	 * This checks the effective protection state without considering
+	 * whether the current user is exempt from ClientGuard restrictions.
+	 *
+	 * @since 1.7.0
+	 * @return bool
+	 */
+	public function is_appearance_protection_enabled() {
+
+		$settings = get_option( self::OPTION_NAME, array() );
+
+		$lock = ! empty( $settings['lock_appearance_management'] );
+
+		if ( PCGD_Core_Plugin::is_client_mode() ) {
+			$lock = true;
+		}
+
+		return $lock;
+	}
+
+	/**
 	 * Helper
 	 * Determines whether Appearance protection is active.
 	 *
@@ -68,15 +94,7 @@ class PCGD_Admin_Appearance_Guard {
 			return false;
 		}
 
-		$settings = get_option( self::OPTION_NAME, array() );
-
-		$lock = ! empty( $settings['lock_appearance_management'] );
-
-		if ( PCGD_Core_Plugin::is_client_mode() ) {
-			$lock = true;
-		}
-
-		return $lock;
+		return $this->is_appearance_protection_enabled();
 	}
 
     /**
@@ -112,6 +130,14 @@ class PCGD_Admin_Appearance_Guard {
 	public function protect_sidebars_widgets_update( $value, $old_value, $option ) {
 
 		if ( ! $this->is_appearance_protection_active() ) {
+
+			if ( $value !== $old_value && $this->is_appearance_protection_enabled() && PCGD_Core_Plugin::should_bypass_protection() ) {
+
+				// Notify ClientGuard Sentinel that a protected sidebar widget update was bypassed.
+				// @since 1.7.0
+				do_action( 'pcgd_protection_bypassed', 'appearance_guard', 'update', $option );
+			}
+
 			return $value;
 		}
 
@@ -144,10 +170,87 @@ class PCGD_Admin_Appearance_Guard {
 		}
 
 		if ( ! $this->is_appearance_protection_active() ) {
+
+			if ( $this->is_appearance_protection_enabled() && PCGD_Core_Plugin::should_bypass_protection() ) {
+
+				// Notify ClientGuard Sentinel that a protected sidebar widget deletion was bypassed.
+				// @since 1.7.0
+				do_action( 'pcgd_protection_bypassed', 'appearance_guard', 'delete', $option );
+			}
+
 			return;
 		}
 
 		// Notify ClientGuard Sentinel that a protected sidebar widget deletion was blocked.
+		// @since 1.7.0
+		do_action( 'pcgd_protection_blocked', 'appearance_guard', 'delete', $option );
+
+		PCGD_Core_Plugin::block_protected_option_deletion( $option );
+	}
+
+	/**
+	 * Prevents protected block widgets from being updated.
+	 *
+	 * @param mixed  $value     New option value.
+	 * @param mixed  $old_value Previous option value.
+	 * @param string $option    Protected option name.
+	 * @return mixed New value when protection is inactive, otherwise previous value.
+	 */
+	public function protect_widget_block_update( $value, $old_value, $option ) {
+
+		if ( ! $this->is_appearance_protection_active() ) {
+
+			if ( $value !== $old_value && $this->is_appearance_protection_enabled() && PCGD_Core_Plugin::should_bypass_protection() ) {
+
+				// Notify ClientGuard Sentinel that a protected block widget update was bypassed.
+				// @since 1.7.0
+				do_action( 'pcgd_protection_bypassed', 'appearance_guard', 'update', $option );
+			}
+
+			return $value;
+		}
+
+		// Notify ClientGuard Sentinel that a protected block widget update was blocked.
+		// @since 1.7.0
+		do_action( 'pcgd_protection_blocked', 'appearance_guard', 'update', $option );
+
+		return $old_value;
+	}
+
+	/**
+	 * Prevents block widget data from being deleted.
+	 *
+	 * WordPress does not provide a cancellable filter before an option is
+	 * deleted. The `delete_option` action fires before the database row is
+	 * removed, allowing ClientGuard to stop execution before the deletion
+	 * occurs.
+	 *
+	 * @since 1.7.0
+	 *
+	 * @param string $option Name of the option being deleted.
+	 * @return void
+	 */
+	public function protect_widget_block_delete( $option ) {
+
+		$option = sanitize_key( $option );
+
+		if ( 'widget_block' !== $option ) {
+			return;
+		}
+
+		if ( ! $this->is_appearance_protection_active() ) {
+
+			if ( $this->is_appearance_protection_enabled() && PCGD_Core_Plugin::should_bypass_protection() ) {
+
+				// Notify ClientGuard Sentinel that a protected block widget deletion was bypassed.
+				// @since 1.7.0
+				do_action( 'pcgd_protection_bypassed', 'appearance_guard', 'delete', $option );
+			}
+
+			return;
+		}
+
+		// Notify ClientGuard Sentinel that a protected block widget deletion was blocked.
 		// @since 1.7.0
 		do_action( 'pcgd_protection_blocked', 'appearance_guard', 'delete', $option );
 
@@ -184,18 +287,11 @@ class PCGD_Admin_Appearance_Guard {
 			return array();
 		}
 
-		$options = array_map(
-			'sanitize_key',
-			$options
-		);
+		$options = array_map( 'sanitize_key', $options );
 
-		$options = array_filter(
-			$options
-		);
+		$options = array_filter( $options );
 
-		return array_values(
-			array_unique( $options )
-		);
+		return array_values( array_unique( $options ) );
 	}
 
 	/**
@@ -209,6 +305,25 @@ class PCGD_Admin_Appearance_Guard {
 	public function protect_site_identity_option_update( $value, $old_value, $option ) {
 
 		if ( ! $this->is_appearance_protection_active() ) {
+
+			$changed = $value !== $old_value;
+
+			if ( in_array( $option, array( 'site_logo', 'site_icon' ), true ) ) {
+
+				if ( false === $value || false === $old_value ) {
+					$changed = $value !== $old_value;
+				} else {
+					$changed = (int) $value !== (int) $old_value;
+				}
+			}
+
+			if ( $changed && $this->is_appearance_protection_enabled() && PCGD_Core_Plugin::should_bypass_protection() ) {
+
+				// Notify ClientGuard Sentinel that a protected Site Identity update was bypassed.
+				// @since 1.7.0
+				do_action( 'pcgd_protection_bypassed', 'appearance_guard', 'update', $option );
+			}
+
 			return $value;
 		}
 
@@ -247,6 +362,14 @@ class PCGD_Admin_Appearance_Guard {
 		}
 
 		if ( ! $this->is_appearance_protection_active() ) {
+
+			if ( $this->is_appearance_protection_enabled() && PCGD_Core_Plugin::should_bypass_protection() ) {
+
+				// Notify ClientGuard Sentinel that a protected Site Identity deletion was bypassed.
+				// @since 1.7.0
+				do_action( 'pcgd_protection_bypassed', 'appearance_guard', 'delete', $option );
+			}
+
 			return;
 		}
 
