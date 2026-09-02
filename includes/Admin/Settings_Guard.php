@@ -121,6 +121,13 @@ class PCGD_Admin_Settings_Guard {
     public function block_permalink_structure_update( $new_value, $old_value, $option ) {
 
         if ( ! $this->is_client_mode_protection_active() ) {
+
+            if ( $new_value !== $old_value && PCGD_Core_Plugin::is_client_mode() && PCGD_Core_Plugin::should_bypass_protection() ) {
+                // Notify ClientGuard Sentinel that a protected permalink option update was bypassed.
+                // @since 1.7.0
+                do_action( 'pcgd_protection_bypassed', 'settings_guard', 'update', $option );
+            }
+
             return $new_value;
         }
 
@@ -152,11 +159,18 @@ class PCGD_Admin_Settings_Guard {
             return;
         }
 
-        if ( ! $this->is_client_mode_protection_active() ) {
+        if ( ! in_array( $option, $this->get_protected_permalink_options(), true ) ) {
             return;
         }
 
-        if ( ! in_array( $option, $this->get_protected_permalink_options(), true ) ) {
+        if ( ! $this->is_client_mode_protection_active() ) {
+
+            if ( PCGD_Core_Plugin::is_client_mode() && PCGD_Core_Plugin::should_bypass_protection() ) {
+                // Notify ClientGuard Sentinel that a protected permalink option deletion was bypassed.
+                // @since 1.7.0
+                do_action( 'pcgd_protection_bypassed', 'settings_guard', 'delete', $option );
+            }
+
             return;
         }
 
@@ -231,6 +245,27 @@ class PCGD_Admin_Settings_Guard {
 
     /**
      * Helper
+     * Site URL protection is enabled by the individual setting
+     * or enforced globally by Client Mode.
+     */
+    public function is_site_url_protection_enabled() {
+
+        $settings = get_option( self::OPTION_NAME );
+
+        $enabled = ! empty( $settings['protect_site_urls'] );
+
+        /*
+        * Client Mode protects Site URLs.
+        */
+        if ( PCGD_Core_Plugin::is_client_mode() ) {
+            $enabled = true;
+        }
+
+        return $enabled;
+    }
+
+    /**
+     * Helper
      * Check if site URL protection is active.
      *
      * @since 1.7.0
@@ -242,16 +277,7 @@ class PCGD_Admin_Settings_Guard {
             return false;
         }
 
-        $settings = get_option( self::OPTION_NAME );
-
-        $enabled = ! empty( $settings['protect_site_urls'] );
-
-        // Client Mode override
-        if ( PCGD_Core_Plugin::is_client_mode() ) {
-            $enabled = true;
-        }
-
-        return $enabled;
+        return $this->is_site_url_protection_enabled();
     }
 
     /**
@@ -265,6 +291,13 @@ class PCGD_Admin_Settings_Guard {
     public function block_siteurl_update( $new_value, $old_value, $option ) {
 
         if ( ! $this->is_site_url_protected() ) {
+
+            if ( $new_value !== $old_value && $this->is_site_url_protection_enabled() && PCGD_Core_Plugin::should_bypass_protection() ) {
+                // Notify ClientGuard Sentinel that a protected Site URL option update was bypassed.
+                // @since 1.7.0
+                do_action( 'pcgd_protection_bypassed', 'settings_guard', 'update', $option );
+            }
+
             return $new_value;
         }
 
@@ -292,6 +325,13 @@ class PCGD_Admin_Settings_Guard {
     public function block_home_update( $new_value, $old_value, $option ) {
 
         if ( ! $this->is_site_url_protected() ) {
+
+            if ( $new_value !== $old_value && $this->is_site_url_protection_enabled() && PCGD_Core_Plugin::should_bypass_protection() ) {
+                // Notify ClientGuard Sentinel that a protected Home URL option update was bypassed.
+                // @since 1.7.0
+                do_action( 'pcgd_protection_bypassed', 'settings_guard', 'update', $option );
+            }
+
             return $new_value;
         }
 
@@ -360,6 +400,13 @@ class PCGD_Admin_Settings_Guard {
         }
 
         if ( ! $this->is_site_url_protected() ) {
+
+            if ( $this->is_site_url_protection_enabled() && PCGD_Core_Plugin::should_bypass_protection() ) {
+                // Notify ClientGuard Sentinel that a protected Site URL option deletion was bypassed.
+                // @since 1.7.0
+                do_action( 'pcgd_protection_bypassed', 'settings_guard', 'delete', $option );
+            }
+
             return;
         }
 
