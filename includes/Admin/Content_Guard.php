@@ -24,6 +24,7 @@ class PCGD_Admin_Content_Guard {
         $loader->add_filter( 'map_meta_cap', $this, 'protect_content', 10, 4 );
 
         // @since 1.7.0
+        $loader->add_action( 'pre_post_update', $this, 'sentinel_protected_content_update', 10, 2 );
         $loader->add_filter( 'pre_trash_post', $this, 'block_protected_content_trash', 10, 3 );
         $loader->add_filter( 'pre_delete_post', $this, 'block_protected_content_deletion', 10, 3 );
 
@@ -32,17 +33,16 @@ class PCGD_Admin_Content_Guard {
     }
 
     /**
-     * Check whether content is protected.
+     * Helper
+     * Check whether content is explicitly protected.
      *
+     * Client Mode automatically adds the front page to the protected content list.
+     *
+     * @since 1.7.0
      * @param int $post_id Post ID.
-     * @param int $user_id Optional user ID.
      * @return bool
      */
-    private function is_content_protected( $post_id, $user_id = 0 ) {
-
-        if ( PCGD_Core_Plugin::should_bypass_protection( $user_id ) ) {
-            return false;
-        }
+    private function is_content_explicitly_protected( $post_id ) {
 
         $settings = get_option( self::OPTION_NAME );
 
@@ -62,6 +62,23 @@ class PCGD_Admin_Content_Guard {
         }
 
         return in_array( $post_id, $protected, true );
+    }
+
+    /**
+     * Helper
+     * Check whether content is protected.
+     *
+     * @param int $post_id Post ID.
+     * @param int $user_id Optional user ID.
+     * @return bool
+     */
+    private function is_content_protected( $post_id, $user_id = 0 ) {
+
+        if ( PCGD_Core_Plugin::should_bypass_protection( $user_id ) ) {
+            return false;
+        }
+
+        return $this->is_content_explicitly_protected( $post_id );
     }
 
     /**
@@ -116,6 +133,49 @@ class PCGD_Admin_Content_Guard {
     }
 
     /**
+     * Records protected content updates for Sentinel.
+     *
+     * Records legitimate bypasses performed by trusted administrators and
+     * unexpected updates to protected content that reach the post update path.
+     *
+     * @since 1.7.0
+     *
+     * @param int   $post_id Post ID.
+     * @param array $data    Array of post data.
+     * @return void
+     */
+    public function sentinel_protected_content_update( $post_id, $data ) {
+
+        $post_before = get_post( $post_id );
+
+        // If it's a trash request, return immediately
+        if (
+            $post_before
+            && 'trash' !== $post_before->post_status
+            && isset( $data['post_status'] )
+            && 'trash' === $data['post_status']
+        ) {
+            return;
+        }
+
+        if ( ! $this->is_content_explicitly_protected( $post_id ) ) {
+            return;
+        }
+
+        if ( PCGD_Core_Plugin::should_bypass_protection() ) {
+
+            // Notify ClientGuard Sentinel that a protected content update was bypassed.
+            do_action( 'pcgd_protection_bypassed', 'content_guard', 'update', $post_id );
+
+            return;
+        }
+
+        // Notify ClientGuard Sentinel that protected content was updated
+        // without the expected bypass.
+        do_action( 'pcgd_protection_violation', 'content_guard', 'update', $post_id );
+    }
+
+    /**
      * Block protected content from being moved to Trash.
      *
      * @since 1.7.0
@@ -127,12 +187,19 @@ class PCGD_Admin_Content_Guard {
      */
     public function block_protected_content_trash( $trash, $post, $previous_status ) {
 
-        if ( ! $this->is_content_protected( $post->ID ) ) {
+        if ( ! $this->is_content_explicitly_protected( $post->ID ) ) {
+            return $trash;
+        }
+
+        if ( PCGD_Core_Plugin::should_bypass_protection() ) {
+
+            // Notify ClientGuard Sentinel that protected content trashing was bypassed.
+            do_action( 'pcgd_protection_bypassed', 'content_guard', 'trash', $post->ID );
+
             return $trash;
         }
 
         // Notify ClientGuard Sentinel that protected content trashing was blocked.
-        // @since 1.7.0
         do_action( 'pcgd_protection_blocked', 'content_guard', 'trash', $post->ID );
 
         return false;
@@ -150,7 +217,16 @@ class PCGD_Admin_Content_Guard {
      */
     public function block_protected_content_deletion( $check, $post, $force_delete ) {
 
-        if ( ! $this->is_content_protected( $post->ID ) ) {
+        if ( ! $this->is_content_explicitly_protected( $post->ID ) ) {
+            return $check;
+        }
+
+        if ( PCGD_Core_Plugin::should_bypass_protection() ) {
+
+            // Notify ClientGuard Sentinel that protected content deletion was bypassed.
+            // @since 1.7.0
+            do_action( 'pcgd_protection_bypassed', 'content_guard', 'delete', $post->ID );
+
             return $check;
         }
 
