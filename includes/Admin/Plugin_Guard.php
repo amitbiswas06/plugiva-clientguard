@@ -30,6 +30,9 @@ class PCGD_Admin_Plugin_Guard {
 
 		$installation_sentinel = new PCGD_Admin_Plugin_Installation_Sentinel( $this );
 		$installation_sentinel->register( $loader );
+
+		$loader->add_action( 'activated_plugin', $this, 'sentinel_network_plugin_activation', 10, 2 );
+		$loader->add_action( 'deactivated_plugin', $this, 'sentinel_network_plugin_deactivation', 10, 2 );
 	}
 
 	/**
@@ -211,6 +214,49 @@ class PCGD_Admin_Plugin_Guard {
 	}
 
 	/**
+	 * Observe successful network-wide plugin activation.
+	 *
+	 * @since 1.7.0
+	 * @param string $plugin        Plugin basename.
+	 * @param bool   $network_wide  Whether the plugin was activated network-wide.
+	 */
+	public function sentinel_network_plugin_activation( $plugin, $network_wide ) {
+
+		if ( ! $network_wide ) {
+			return;
+		}
+
+		do_action(
+			'pcgd_protection_bypassed',
+			'plugin_guard',
+			'network_activate',
+			$plugin
+		);
+	}
+
+	/**
+	 * Observe successful network-wide plugin deactivation.
+	 *
+	 * @since 1.7.0
+	 * @param string $plugin        Plugin basename.
+	 * @param bool   $network_wide  Whether the plugin was deactivated network-wide.
+	 */
+	public function sentinel_network_plugin_deactivation( $plugin, $network_wide ) {
+
+		if ( ! $network_wide ) {
+			return;
+		}
+
+		do_action(
+			'pcgd_protection_bypassed',
+			'plugin_guard',
+			'network_deactivate',
+			$plugin
+		);
+	}
+
+	/**
+	 * Helper
 	 * Determine whether plugin operation protection is enabled.
 	 *
 	 * This checks the effective protection state without considering
@@ -236,6 +282,7 @@ class PCGD_Admin_Plugin_Guard {
 	}
 
 	/**
+	 * Helper
 	 * Determine whether plugin operations is protected.
 	 *
 	 * @since 1.7.0

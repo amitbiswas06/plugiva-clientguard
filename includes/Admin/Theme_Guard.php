@@ -31,6 +31,8 @@ class PCGD_Admin_Theme_Guard {
 
 		$theme_deletion_sentinel = new PCGD_Admin_Theme_Deletion_Sentinel( $this );
 		$theme_deletion_sentinel->register( $loader );
+
+		$loader->add_action( 'update_site_option_allowedthemes', $this, 'sentinel_network_theme_change', 10, 3 );
 	}
 
 	/**
@@ -120,4 +122,45 @@ class PCGD_Admin_Theme_Guard {
 
 		return $this->is_theme_operation_protection_enabled();
 	}
+
+	/**
+	 * Observe network-wide theme enable/disable.
+	 *
+	 * @since 1.7.0
+	 *
+	 * @param string $option     Option name.
+	 * @param array  $value      New allowed themes.
+	 * @param array  $old_value  Previous allowed themes.
+	 * @return void
+	 */
+	public function sentinel_network_theme_change( $option, $value, $old_value ) {
+
+		if ( 'allowedthemes' !== $option ) {
+			return;
+		}
+
+		$enabled = array_diff_key( $value, $old_value );
+		$disabled = array_diff_key( $old_value, $value );
+
+		foreach ( $enabled as $stylesheet => $enabled_value ) {
+
+			do_action(
+				'pcgd_protection_bypassed',
+				'theme_guard',
+				'network_enable',
+				$stylesheet
+			);
+		}
+
+		foreach ( $disabled as $stylesheet => $disabled_value ) {
+
+			do_action(
+				'pcgd_protection_bypassed',
+				'theme_guard',
+				'network_disable',
+				$stylesheet
+			);
+		}
+	}
+
 }
