@@ -265,36 +265,55 @@ class PCGD_Admin_Settings {
 			? sanitize_text_field( $input['admin_notice_text'] )
 			: $defaults['admin_notice_text'];
 
-		// Enforce Client Mode defaults at save level
+		// Enforce Client Mode defaults at save level.
 		// @since 1.1.0
-		if ( ! empty( $output['client_mode'] ) ) {
-
-			$output['lock_theme_switch']   			= true;
-			$output['lock_appearance_management'] 	= true; // @since 1.6.0
-			$output['lock_plugin_install'] 			= true;
-			$output['allow_plugin_toggle'] 			= false;
-			$output['protect_site_urls'] 			= true; // @since 1.2.0
-
-			// For menu hiding
-			$client_locked = array(
-				'plugins.php',
-				'themes.php',
-				'tools.php',
-			);
-
-			// Add ACF only if active
-			if ( function_exists( 'acf' ) ) {
-				$client_locked[] = 'acf';
-			}
-
-			$current = isset( $output['hide_menus'] ) && is_array( $output['hide_menus'] )
-				? $output['hide_menus']
-				: array();
-
-			$output['hide_menus'] = array_unique( array_merge( $current, $client_locked ) );
-		}
+		$output = $this->enforce_client_mode_settings( $output );
 
 		return $output;
+	}
+
+	/**
+	 * Apply Client Mode settings enforcement.
+	 *
+	 * Forces the settings controlled by Client Mode to their required
+	 * values and adds the corresponding admin menu restrictions.
+	 *
+	 * @since 1.7.0
+	 *
+	 * @param array $settings Settings to update.
+	 * @return array Updated settings.
+	 */
+	public function enforce_client_mode_settings( $settings ) {
+
+		if ( empty( $settings['client_mode'] ) ) {
+			return $settings;
+		}
+
+		$settings['lock_theme_switch']          = true;
+		$settings['lock_appearance_management'] = true;
+		$settings['lock_plugin_install']        = true;
+		$settings['allow_plugin_toggle']        = false;
+		$settings['protect_site_urls']          = true;
+
+		$client_locked = array(
+			'plugins.php',
+			'themes.php',
+			'tools.php',
+		);
+
+		if ( function_exists( 'acf' ) ) {
+			$client_locked[] = 'acf';
+		}
+
+		$current = isset( $settings['hide_menus'] ) && is_array( $settings['hide_menus'] )
+			? $settings['hide_menus']
+			: array();
+
+		$settings['hide_menus'] = array_unique(
+			array_merge( $current, $client_locked )
+		);
+
+		return $settings;
 	}
 
 	public function render_checkbox( $args ) {

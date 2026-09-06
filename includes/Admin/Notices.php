@@ -15,6 +15,24 @@ class PCGD_Admin_Notices {
 	const OPTION_NAME = 'pcgd_settings';
 
 	/**
+	 * Admin Settings instance.
+	 * @since 1.7.0
+	 *
+	 * @var PCGD_Admin_Settings
+	 */
+	private $settings;
+
+	/**
+	 * Constructor.
+	 * @since 1.7.0
+	 *
+	 * @param PCGD_Admin_Settings $settings Admin Settings instance.
+	 */
+	public function __construct( PCGD_Admin_Settings $settings ) {
+		$this->settings = $settings;
+	}
+
+	/**
 	 * Register hooks.
 	 *
 	 * @param PCGD_Core_Loader $loader Loader instance.
@@ -301,8 +319,15 @@ class PCGD_Admin_Notices {
 
 			check_admin_referer( 'pcgd_enable_client_mode' );
 
+			// $settings = get_option( self::OPTION_NAME, array() );
+			// $settings['client_mode'] = true;
+
+			// update_option( self::OPTION_NAME, $settings );
+
 			$settings = get_option( self::OPTION_NAME, array() );
 			$settings['client_mode'] = true;
+
+			$settings = $this->settings->enforce_client_mode_settings( $settings );
 
 			update_option( self::OPTION_NAME, $settings );
 

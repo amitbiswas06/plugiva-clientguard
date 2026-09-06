@@ -36,6 +36,10 @@ class PCGD_Core_Settings_Events {
 	 */
 	public function handle_settings_update( $old_value, $new_value, $option ) {
 
+		if ( ! is_array( $old_value ) || ! is_array( $new_value ) ) {
+			return;
+		}
+
         // Client Mode changes are recorded independently because it governs
         // multiple General Settings at once.
         $old_client_mode = ! empty( $old_value['client_mode'] );
@@ -44,54 +48,55 @@ class PCGD_Core_Settings_Events {
         if ( $old_client_mode !== $new_client_mode ) {
             do_action(
                 'pcgd_client_mode_changed',
+                'client_mode',
+                'update',
                 $new_client_mode,
                 $old_client_mode
             );
         }
 
         // General Settings are only recorded as independent changes when
-        // Client Mode is inactive before and after the update. This prevents
-        // Client Mode transitions from producing secondary protection events.
-        if ( ! $old_client_mode && ! $new_client_mode ) {
+        // Client Mode is inactive after the update.
 
-            $this->maybe_dispatch_protection_change(
-                'theme_guard',
-                ! empty( $new_value['lock_theme_switch'] ),
-                ! empty( $old_value['lock_theme_switch'] )
-            );
+        $this->maybe_dispatch_protection_change(
+            'theme_guard',
+            ! empty( $new_value['lock_theme_switch'] ),
+            ! empty( $old_value['lock_theme_switch'] )
+        );
 
-            $this->maybe_dispatch_protection_change(
-                'appearance_guard',
-                ! empty( $new_value['lock_appearance_management'] ),
-                ! empty( $old_value['lock_appearance_management'] )
-            );
+        $this->maybe_dispatch_protection_change(
+            'appearance_guard',
+            ! empty( $new_value['lock_appearance_management'] ),
+            ! empty( $old_value['lock_appearance_management'] )
+        );
 
-            $this->maybe_dispatch_protection_change(
-                'plugin_guard',
-                ! empty( $new_value['lock_plugin_install'] ),
-                ! empty( $old_value['lock_plugin_install'] )
-            );
+        $this->maybe_dispatch_protection_change(
+            'plugin_guard',
+            ! empty( $new_value['lock_plugin_install'] ),
+            ! empty( $old_value['lock_plugin_install'] )
+        );
 
-            // Plugin Activation is a separate policy within Plugin Guard.
-            // Record changes to the policy itself rather than effective
-            // protection changes caused by enabling or disabling Plugin Guard.
-            $old_plugin_activation_allowed = ! empty( $old_value['allow_plugin_toggle'] );
-            $new_plugin_activation_allowed = ! empty( $new_value['allow_plugin_toggle'] );
+        // Plugin Activation is a separate policy within Plugin Guard.
+        // Record changes to the policy itself rather than effective
+        // protection changes caused by enabling or disabling Plugin Guard.
+        $old_plugin_activation_allowed = ! empty( $old_value['allow_plugin_toggle'] );
+        $new_plugin_activation_allowed = ! empty( $new_value['allow_plugin_toggle'] );
 
-            if ( $old_plugin_activation_allowed !== $new_plugin_activation_allowed ) {
-                do_action(
-                    'pcgd_plugin_activation_policy_changed',
-                    $new_plugin_activation_allowed,
-                    $old_plugin_activation_allowed
-                );
-            }
-
-            $this->maybe_dispatch_protection_change(
-                'site_urls',
-                ! empty( $new_value['protect_site_urls'] ),
-                ! empty( $old_value['protect_site_urls'] )
+        if ( $old_plugin_activation_allowed !== $new_plugin_activation_allowed ) {
+            do_action(
+                'pcgd_plugin_activation_policy_changed',
+                'plugin_activation_policy',
+                'update',
+                $new_plugin_activation_allowed,
+                $old_plugin_activation_allowed
             );
         }
+
+        $this->maybe_dispatch_protection_change(
+            'site_urls',
+            ! empty( $new_value['protect_site_urls'] ),
+            ! empty( $old_value['protect_site_urls'] )
+        );
 
         // Protected Content is independent from Client Mode. Compare the
         // explicitly configured content IDs and dispatch separate events for
@@ -107,18 +112,28 @@ class PCGD_Core_Settings_Events {
         $added_content = array_diff( $new_protected_content, $old_protected_content );
 
         foreach ( $added_content as $post_id ) {
-            do_action( 'pcgd_protected_content_added', $post_id );
+            do_action(
+                'pcgd_protected_content_added',
+                'protected_content',
+                'add',
+                absint( $post_id )
+            );
         }
 
         $removed_content = array_diff( $old_protected_content, $new_protected_content );
 
         foreach ( $removed_content as $post_id ) {
-            do_action( 'pcgd_protected_content_removed', $post_id );
+            do_action(
+                'pcgd_protected_content_removed',
+                'protected_content',
+                'remove',
+                absint( $post_id )
+            );
         }
     }
 
     /**
-     * Dispatch a General Protection state change event when the state changed.
+     * Dispatch a protection state change event.
      *
      * @param string $protection Protection identifier.
      * @param bool   $new_state   New protection state.
@@ -137,10 +152,10 @@ class PCGD_Core_Settings_Events {
 
         do_action(
             'pcgd_protection_state_changed',
-            $protection,
-            $new_state,
-            $old_state
+            sanitize_key( $protection ),
+            'update',
+            (bool) $new_state,
+            (bool) $old_state
         );
     }
-
 }

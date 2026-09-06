@@ -21,6 +21,7 @@ class PCGD_Core_Plugin {
 	 */
 	public function __construct() {
 		$this->load_dependencies();
+		$this->maybe_upgrade_database(); // @since 1.7.0
 		$this->define_admin_hooks();
 	}
 
@@ -32,6 +33,7 @@ class PCGD_Core_Plugin {
 		require_once PCGD_PLUGIN_PATH . 'includes/Core/Loader.php';
 		require_once PCGD_PLUGIN_PATH . 'includes/Core/Admin_Renderer.php'; // @since 1.1.0
 		require_once PCGD_PLUGIN_PATH . 'includes/Core/Settings_Events.php'; // @since 1.7.0
+		require_once PCGD_PLUGIN_PATH . 'includes/Core/Sentinel.php'; // @since 1.7.0
 
 		require_once PCGD_PLUGIN_PATH . 'includes/Admin/Settings.php';
 		require_once PCGD_PLUGIN_PATH . 'includes/Admin/Menu_Guard.php';
@@ -81,6 +83,9 @@ class PCGD_Core_Plugin {
 		$settings_events = new PCGD_Core_Settings_Events();
 		$settings_events->register_hooks( $this->loader );
 
+		$sentinel = new PCGD_Core_Sentinel();
+		$sentinel->register_hooks( $this->loader );
+
 		// Theme Guard.
 		$theme_guard = new PCGD_Admin_Theme_Guard();
 		$theme_guard->register( $this->loader );
@@ -99,9 +104,13 @@ class PCGD_Core_Plugin {
 		$settings_guard = new PCGD_Admin_Settings_Guard();
 		$settings_guard->register( $this->loader );
 
+		// Create the settings handler once so it can be shared @since 1.7.0
+		// with admin settings registration and Client Mode notices.
+		$settings = new PCGD_Admin_Settings();
+
 		// reloacted outside admin check
 		// @since 1.5.1
-		$notices = new PCGD_Admin_Notices();
+		$notices = new PCGD_Admin_Notices( $settings );
 		$notices->register( $this->loader );
 
 		// Content Guard.
@@ -115,8 +124,6 @@ class PCGD_Core_Plugin {
 		if ( ! is_admin() ) {
 			return;
 		}
-
-		$settings = new PCGD_Admin_Settings();
 
 		$this->loader->add_action( 'admin_menu', $settings, 'register_menu' );
 		$this->loader->add_action( 'admin_init', $settings, 'register_settings' );
@@ -235,6 +242,27 @@ class PCGD_Core_Plugin {
 				'response' => 403,
 			)
 		);
+	}
+
+	/**
+	 * Upgrade ClientGuard database.
+	 *
+	 * @since 1.7.0
+	 *
+	 * @return void
+	 */
+	private function maybe_upgrade_database() {
+
+		$db_version = get_option( 'pcgd_db_version', '' );
+
+		if ( version_compare( $db_version, PCGD_VERSION, '>=' ) ) {
+			return;
+		}
+
+		$sentinel = new PCGD_Core_Sentinel();
+		$sentinel->maybe_create_table();
+
+		update_option( 'pcgd_db_version', PCGD_VERSION );
 	}
 
 	/**
