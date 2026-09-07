@@ -487,34 +487,117 @@ class PCGD_Admin_Settings {
 
 	/**
 	 * Render settings page.
+	 *
+	 * @since 1.0.0 | updated on 1.7.0
 	 */
 	public function render_page() {
+
+		$tab = isset( $_GET['tab'] )
+			? sanitize_key( wp_unslash( $_GET['tab'] ) )
+			: 'general';
+
+		$allowed_tabs = array( 'general', 'sentinel' );
+
+		if ( ! in_array( $tab, $allowed_tabs, true ) ) {
+			$tab = 'general';
+		}
 		?>
 		<div class="wrap">
+
 			<h1><?php echo esc_html__( 'Plugiva ClientGuard', 'plugiva-clientguard' ); ?></h1>
 
+			<nav class="nav-tab-wrapper">
+				<a
+					href="<?php echo esc_url( admin_url( 'options-general.php?page=plugiva-clientguard&tab=general' ) ); ?>"
+					class="nav-tab <?php echo 'general' === $tab ? 'nav-tab-active' : ''; ?>"
+				>
+					<?php esc_html_e( 'General', 'plugiva-clientguard' ); ?>
+				</a>
+
+				<a
+					href="<?php echo esc_url( admin_url( 'options-general.php?page=plugiva-clientguard&tab=sentinel' ) ); ?>"
+					class="nav-tab <?php echo 'sentinel' === $tab ? 'nav-tab-active' : ''; ?>"
+				>
+					<?php esc_html_e( 'Sentinel', 'plugiva-clientguard' ); ?>
+				</a>
+			</nav>
+
+			<?php
+			if ( 'sentinel' === $tab ) :
+				$this->render_sentinel_tab();
+
+			else:
+			?>
+			
 			<form method="post" action="options.php">
 				<?php
 				settings_fields( 'pcgd_settings_group' );
 
-				// Client Mode (highlighted)
+				// Client Mode (highlighted).
 				echo '<div class="pcgd-client-mode-box">';
-				PCGD_Core_Admin_Renderer::render_section( 'plugiva-clientguard', 'pcgd_section_client_mode' );
+				PCGD_Core_Admin_Renderer::render_section(
+					'plugiva-clientguard',
+					'pcgd_section_client_mode'
+				);
 				echo '</div>';
 
-				// Other sections
+				// Other sections.
 				echo '<div class="pcgd-general-box">';
-				PCGD_Core_Admin_Renderer::render_section( 'plugiva-clientguard', 'pcgd_section_general' );
-				PCGD_Core_Admin_Renderer::render_section( 'plugiva-clientguard', 'pcgd_section_content' );
-				PCGD_Core_Admin_Renderer::render_section( 'plugiva-clientguard', 'pcgd_section_menu' );
+				PCGD_Core_Admin_Renderer::render_section(
+					'plugiva-clientguard',
+					'pcgd_section_general'
+				);
+				PCGD_Core_Admin_Renderer::render_section(
+					'plugiva-clientguard',
+					'pcgd_section_content'
+				);
+				PCGD_Core_Admin_Renderer::render_section(
+					'plugiva-clientguard',
+					'pcgd_section_menu'
+				);
 				echo '</div>';
 
 				submit_button();
 				?>
 			</form>
+			<?php endif; ?>
+
 		</div>
 		<?php
 	}
+
+	/**
+	 * Render Sentinel tab.
+	 *
+	 * Sentinel provides a site-scoped operational history of
+	 * ClientGuard events recorded for the current site.
+	 *
+	 * @since 1.7.0
+	 *
+	 * @return void
+	 */
+    private function render_sentinel_tab() {
+
+        $table = new PCGD_Admin_Sentinel_Table();
+
+        $table->prepare_items();
+        ?>
+        <div class="pcgd-sentinel-box">
+
+            <h2><?php esc_html_e( 'Sentinel', 'plugiva-clientguard' ); ?></h2>
+
+            <p>
+                <?php esc_html_e(
+                    'Sentinel records important ClientGuard configuration and operational events for this site.',
+                    'plugiva-clientguard'
+                ); ?>
+            </p>
+
+            <?php $table->display(); ?>
+
+        </div>
+        <?php
+    }
 
 	/**
 	 * Add settings link to plugin action links.

@@ -169,11 +169,24 @@ class PCGD_Core_Sentinel {
 
                 $details['old_value'] = $old_value;
                 $details['new_value'] = $new_value;
-                $details['text']      = sprintf(
-                    /* translators: 1: previous protection state, 2: new protection state. */
-                    __( 'Protection state changed from %1$s to %2$s.', 'plugiva-clientguard' ),
+
+                $protection_name = array(
+                    'theme_guard'       => __( 'Theme guard', 'plugiva-clientguard' ),
+                    'appearance_guard'  => __( 'Appearance guard', 'plugiva-clientguard' ),
+                    'plugin_guard'      => __( 'Plugin guard', 'plugiva-clientguard' ),
+                    'site_urls'         => __( 'Site URL', 'plugiva-clientguard' ),
+                );
+
+                $name = isset( $protection_name[ $context ] )
+                    ? $protection_name[ $context ]
+                    : __( 'Protection', 'plugiva-clientguard' );
+
+                $details['text'] = sprintf(
+                    /* translators: 1: protection name, 2: previous state, 3: new state. */
+                    __( '%1$s protection state changed from %2$s to %3$s.', 'plugiva-clientguard' ),
+                    $name,
                     $old_value ? __( 'enabled', 'plugiva-clientguard' ) : __( 'disabled', 'plugiva-clientguard' ),
-                    $new_value ? __( 'enabled', 'plugiva-clientguard' ) : __( 'disabled', 'plugiva-clientGuard' )
+                    $new_value ? __( 'enabled', 'plugiva-clientguard' ) : __( 'disabled', 'plugiva-clientguard' )
                 );
                 break;
 
@@ -218,7 +231,11 @@ class PCGD_Core_Sentinel {
                 $event   = isset( $args[1] ) ? sanitize_key( $args[1] ) : '';
                 $target  = isset( $args[2] ) ? absint( $args[2] ) : 0;
 
-                $details['text'] = __( 'Protected content added.', 'plugiva-clientguard' );
+                $details['text'] = sprintf(
+                    /* translators: %d: post ID. */
+                    __( 'Content protection added for post ID #%d.', 'plugiva-clientguard' ),
+                    $target
+                );
                 break;
 
             case 'pcgd_protected_content_removed':
@@ -226,7 +243,11 @@ class PCGD_Core_Sentinel {
                 $event   = isset( $args[1] ) ? sanitize_key( $args[1] ) : '';
                 $target  = isset( $args[2] ) ? absint( $args[2] ) : 0;
 
-                $details['text'] = __( 'Protected content removed.', 'plugiva-clientguard' );
+                $details['text'] = sprintf(
+                    /* translators: %d: post ID. */
+                    __( 'Content protection removed for post ID #%d.', 'plugiva-clientguard' ),
+                    $target
+                );
                 break;
 
             default:
@@ -274,18 +295,80 @@ class PCGD_Core_Sentinel {
             return;
         }
 
+        $guard_names = array(
+            'theme_guard'       => __( 'Theme Guard', 'plugiva-clientguard' ),
+            'appearance_guard'  => __( 'Appearance Guard', 'plugiva-clientguard' ),
+            'plugin_guard'      => __( 'Plugin Guard', 'plugiva-clientguard' ),
+            'settings_guard'    => __( 'Settings Guard', 'plugiva-clientguard' ),
+            'content_guard'     => __( 'Content Guard', 'plugiva-clientguard' ),
+        );
+
+        $guard_name = isset( $guard_names[ $context ] )
+            ? $guard_names[ $context ]
+            : '';
+
         switch ( $hook ) {
 
             case 'pcgd_protection_blocked':
-                $text = __( 'Protection was blocked.', 'plugiva-clientguard' );
+                if ( '' === $guard_name ) {
+                    return;
+                }
+
+                if ( 'content_guard' === $context ) {
+                    $text = sprintf(
+                        /* translators: 1: guard name, 2: event name, 3: post ID. */
+                        __( '%1$s protection blocked %2$s post ID #%3$s.', 'plugiva-clientguard' ),
+                        $guard_name,
+                        $event,
+                        $target
+                    );
+                } else {
+                    $text = sprintf(
+                        /* translators: 1: guard name, 2: event name, 3: target. */
+                        __( '%1$s protection blocked %2$s %3$s.', 'plugiva-clientguard' ),
+                        $guard_name,
+                        $event,
+                        $target
+                    );
+                }
                 break;
 
             case 'pcgd_protection_bypassed':
-                $text = __( 'Protection was bypassed.', 'plugiva-clientguard' );
+                if ( '' === $guard_name ) {
+                    return;
+                }
+
+                if ( 'content_guard' === $context ) {
+                    $text = sprintf(
+                        /* translators: 1: guard name, 2: event name, 3: post ID. */
+                        __( '%1$s protection bypassed %2$s post ID #%3$s.', 'plugiva-clientguard' ),
+                        $guard_name,
+                        $event,
+                        $target
+                    );
+                } else {
+                    $text = sprintf(
+                        /* translators: 1: guard name, 2: event name, 3: target. */
+                        __( '%1$s protection bypassed %2$s %3$s.', 'plugiva-clientguard' ),
+                        $guard_name,
+                        $event,
+                        $target
+                    );
+                }
                 break;
 
             case 'pcgd_protection_violation':
-                $text = __( 'A protection violation occurred.', 'plugiva-clientguard' );
+                if ( '' === $guard_name ) {
+                    return;
+                }
+
+                $text = sprintf(
+                    /* translators: 1: guard name, 2: event name, 3: post ID. */
+                    __( '%1$s protection violation on %2$s post ID #%3$s.', 'plugiva-clientguard' ),
+                    $guard_name,
+                    $event,
+                    $target
+                );
                 break;
 
             default:

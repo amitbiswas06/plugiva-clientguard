@@ -332,7 +332,7 @@ class PCGD_Admin_Notices {
 			update_option( self::OPTION_NAME, $settings );
 
 			// Redirect to settings page
-			wp_safe_redirect( admin_url( 'admin.php?page=plugiva-clientguard' ) );
+			wp_safe_redirect( admin_url( 'options-general.php?page=plugiva-clientguard' ) );
 			exit;
 		}
 

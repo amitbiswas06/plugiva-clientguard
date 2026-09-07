@@ -54,6 +54,7 @@ class PCGD_Core_Plugin {
 		require_once PCGD_PLUGIN_PATH . 'includes/Admin/Notices.php';
 		require_once PCGD_PLUGIN_PATH . 'includes/Admin/Ajax.php';
 		require_once PCGD_PLUGIN_PATH . 'includes/Admin/Assets.php';
+		require_once PCGD_PLUGIN_PATH . 'includes/Admin/Sentinel_Table.php'; // @since 1.7.0
 
 		$this->loader = new PCGD_Core_Loader();
 	}

@@ -59,3 +59,10 @@
 	margin-top: 5px;
 	text-align: center;
 }
+
+table.sentinel_events .column-details {
+    width: 40%;
+}
+tr.pcgd-sentinel-client-mode {
+	background-color: #f0f6fc;
+}
