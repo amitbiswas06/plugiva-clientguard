@@ -316,6 +316,17 @@ class PCGD_Admin_Settings {
 		return $settings;
 	}
 
+	/**
+	 * Render a ClientGuard checkbox field.
+	 *
+	 * Used by registered settings fields to render a checkbox
+	 * based on the field key and label provided in $args.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array $args Checkbox field arguments.
+	 * @return void
+	 */
 	public function render_checkbox( $args ) {
 
 		$settings = get_option( self::OPTION_NAME, array() );
@@ -593,11 +604,66 @@ class PCGD_Admin_Settings {
                 ); ?>
             </p>
 
+			<form method="post" class="pcgd-sentinel-clear-logs">
+				<?php wp_nonce_field( 'pcgd_clear_sentinel_logs', 'pcgd_clear_sentinel_logs_nonce' ); ?>
+
+				<input type="hidden" name="pcgd_action" value="clear_sentinel_logs">
+
+				<?php
+				submit_button(
+					esc_html__( 'Clear All Logs', 'plugiva-clientguard' ),
+					'secondary',
+					'submit',
+					false,
+					array(
+						'onclick' => 'return confirm("' . esc_js(
+							esc_html__( 'Are you sure you want to clear all Sentinel logs for this site? This action cannot be undone.', 'plugiva-clientguard' )
+						) . '");',
+					)
+				);
+				?>
+			</form>
+
             <?php $table->display(); ?>
 
         </div>
         <?php
     }
+
+	/**
+	 * Handle Sentinel actions.
+	 *
+	 * @since 1.7.0
+	 *
+	 * @return void
+	 */
+	public function handle_sentinel_actions() {
+
+		if (
+			! isset( $_POST['pcgd_action'] ) ||
+			'clear_sentinel_logs' !== sanitize_key( wp_unslash( $_POST['pcgd_action'] ) )
+		) {
+			return;
+		}
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		check_admin_referer(
+			'pcgd_clear_sentinel_logs',
+			'pcgd_clear_sentinel_logs_nonce'
+		);
+
+		$sentinel = new PCGD_Core_Sentinel();
+
+		$sentinel->delete_sentinel_events( get_current_blog_id() );
+
+		wp_safe_redirect(
+			admin_url( 'options-general.php?page=plugiva-clientguard&tab=sentinel' )
+		);
+		exit;
+	}
 
 	/**
 	 * Add settings link to plugin action links.

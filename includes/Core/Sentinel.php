@@ -96,6 +96,7 @@ class PCGD_Core_Sentinel {
 	}
 
     /**
+     * Helper
      * Determine the Sentinel event category from a hook.
      *
      * @since 1.7.0
@@ -469,7 +470,87 @@ class PCGD_Core_Sentinel {
             return false;
         }
 
+        // process cleanup when limit exceeds
+        $this->cleanup_sentinel_events( $blog_id );
+
         return true;
+    }
+
+    /**
+     * Clean up Sentinel events for a site.
+     *
+     * Removes the oldest events when the site's retained
+     * Sentinel event count exceeds the configured limit.
+     *
+     * @since 1.7.0
+     *
+     * @param int $blog_id Site ID.
+     * @return void
+     */
+    private function cleanup_sentinel_events( $blog_id ) {
+        global $wpdb;
+
+        $blog_id = absint( $blog_id );
+
+        if ( $blog_id < 1 ) {
+            return;
+        }
+
+        $count = (int) $wpdb->get_var(
+            $wpdb->prepare(
+                "SELECT COUNT(*)
+                FROM {$this->table_name}
+                WHERE blog_id = %d",
+                $blog_id
+            )
+        );
+
+        if ( $count <= 500 ) {
+            return;
+        }
+
+        $excess = $count - 500;
+
+        $wpdb->query(
+            $wpdb->prepare(
+                "DELETE FROM {$this->table_name}
+                WHERE blog_id = %d
+                ORDER BY created_at ASC, id ASC
+                LIMIT %d",
+                $blog_id,
+                $excess
+            )
+        );
+    }
+
+    /**
+     * Delete all Sentinel events for a site.
+     *
+     * Removes all retained Sentinel events belonging to the specified site.
+     *
+     * @since 1.7.0
+     *
+     * @param int $blog_id Site ID.
+     * @return bool True on success, false on failure.
+     */
+    public function delete_sentinel_events( $blog_id ) {
+        global $wpdb;
+
+        $blog_id = absint( $blog_id );
+
+        if ( $blog_id < 1 ) {
+            return false;
+        }
+
+        $deleted = $wpdb->query(
+            $wpdb->prepare(
+                "DELETE FROM {$this->table_name}
+                WHERE blog_id = %d",
+                $blog_id
+            )
+        );
+
+        return false !== $deleted;
     }
 
 }

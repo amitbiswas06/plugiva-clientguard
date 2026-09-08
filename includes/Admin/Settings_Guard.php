@@ -120,9 +120,16 @@ class PCGD_Admin_Settings_Guard {
      */
     public function block_permalink_structure_update( $new_value, $old_value, $option ) {
 
+        $normalized_new_value = trim( (string) $new_value, '/' );
+        $normalized_old_value = trim( (string) $old_value, '/' );
+
         if ( ! $this->is_client_mode_protection_active() ) {
 
-            if ( $new_value !== $old_value && PCGD_Core_Plugin::is_client_mode() && PCGD_Core_Plugin::should_bypass_protection() ) {
+            if ( 
+                $normalized_new_value !== $normalized_old_value && 
+                PCGD_Core_Plugin::is_client_mode() && 
+                PCGD_Core_Plugin::should_bypass_protection() 
+            ) {
                 // Notify ClientGuard Sentinel that a protected permalink option update was bypassed.
                 // @since 1.7.0
                 do_action( 'pcgd_protection_bypassed', 'settings_guard', 'update', $option );
@@ -132,7 +139,7 @@ class PCGD_Admin_Settings_Guard {
         }
 
         // Only block if an actual change is attempted.
-        if ( $new_value !== $old_value ) {
+        if ( $normalized_new_value !== $normalized_old_value ) {
 
             // Notify ClientGuard Sentinel that a protected permalink option update was blocked.
             // @since 1.7.0

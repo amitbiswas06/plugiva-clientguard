@@ -128,6 +128,7 @@ class PCGD_Core_Plugin {
 
 		$this->loader->add_action( 'admin_menu', $settings, 'register_menu' );
 		$this->loader->add_action( 'admin_init', $settings, 'register_settings' );
+		$this->loader->add_action( 'admin_init', $settings, 'handle_sentinel_actions' );
 
 		// Menu Guard.
 		$menu_guard = new PCGD_Admin_Menu_Guard();

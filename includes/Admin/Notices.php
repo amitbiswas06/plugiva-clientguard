@@ -319,11 +319,6 @@ class PCGD_Admin_Notices {
 
 			check_admin_referer( 'pcgd_enable_client_mode' );
 
-			// $settings = get_option( self::OPTION_NAME, array() );
-			// $settings['client_mode'] = true;
-
-			// update_option( self::OPTION_NAME, $settings );
-
 			$settings = get_option( self::OPTION_NAME, array() );
 			$settings['client_mode'] = true;
 
