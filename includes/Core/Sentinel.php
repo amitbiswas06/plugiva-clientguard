@@ -553,4 +553,42 @@ class PCGD_Core_Sentinel {
         return false !== $deleted;
     }
 
+    /**
+     * Get Sentinel events for a site.
+     *
+     * Returns the retained Sentinel events belonging to the specified site,
+     * ordered from newest to oldest.
+     *
+     * @since 1.7.0
+     *
+     * @param int $blog_id Site ID.
+     * @return array Sentinel event records.
+     */
+    public function get_sentinel_events( $blog_id ) {
+        global $wpdb;
+
+        $blog_id = absint( $blog_id );
+
+        if ( $blog_id < 1 ) {
+            return array();
+        }
+
+        $results = $wpdb->get_results(
+            $wpdb->prepare(
+                "SELECT id, blog_id, user_id, category, event, context, action, target, details, created_at
+                FROM {$this->table_name}
+                WHERE blog_id = %d
+                ORDER BY created_at DESC, id DESC",
+                $blog_id
+            ),
+            ARRAY_A
+        );
+
+        if ( ! is_array( $results ) ) {
+            return array();
+        }
+
+        return $results;
+    }
+
 }

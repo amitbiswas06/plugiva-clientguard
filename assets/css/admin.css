@@ -66,3 +66,7 @@ table.sentinel_events .column-details {
 tr.pcgd-sentinel-client-mode {
 	background-color: #f0f6fc;
 }
+.pcgd-sentinel-actions {
+    display: flex;
+    gap: 1em;
+}

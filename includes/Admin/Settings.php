@@ -604,25 +604,61 @@ class PCGD_Admin_Settings {
                 ); ?>
             </p>
 
-			<form method="post" class="pcgd-sentinel-clear-logs">
-				<?php wp_nonce_field( 'pcgd_clear_sentinel_logs', 'pcgd_clear_sentinel_logs_nonce' ); ?>
+			<!-- LOG ACTIONS START -->
+			<div class="pcgd-sentinel-actions">
 
-				<input type="hidden" name="pcgd_action" value="clear_sentinel_logs">
+				<form method="post" class="pcgd-sentinel-export" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+					<?php wp_nonce_field( 'pcgd_export_sentinel_human', 'pcgd_sentinel_nonce' ); ?>
 
-				<?php
-				submit_button(
-					esc_html__( 'Clear All Logs', 'plugiva-clientguard' ),
-					'secondary',
-					'submit',
-					false,
-					array(
-						'onclick' => 'return confirm("' . esc_js(
-							esc_html__( 'Are you sure you want to clear all Sentinel logs for this site? This action cannot be undone.', 'plugiva-clientguard' )
-						) . '");',
-					)
-				);
-				?>
-			</form>
+					<input type="hidden" name="action" value="pcgd_export_sentinel_human">
+
+					<?php
+					submit_button(
+						esc_html__( 'Export Human-Readable CSV', 'plugiva-clientguard' ),
+						'secondary',
+						'submit',
+						false
+					);
+					?>
+				</form>
+
+				<form method="post" class="pcgd-sentinel-export" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+					<?php wp_nonce_field( 'pcgd_export_sentinel_raw', 'pcgd_sentinel_nonce' ); ?>
+
+					<input type="hidden" name="action" value="pcgd_export_sentinel_raw">
+
+					<?php
+					submit_button(
+						esc_html__( 'Export Raw CSV', 'plugiva-clientguard' ),
+						'secondary',
+						'submit',
+						false
+					);
+					?>
+				</form>
+
+				<form method="post" class="pcgd-sentinel-clear-logs" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+					<?php wp_nonce_field( 'pcgd_clear_sentinel_logs', 'pcgd_sentinel_nonce' ); ?>
+
+					<input type="hidden" name="action" value="pcgd_clear_sentinel_logs">
+
+					<?php
+					submit_button(
+						esc_html__( 'Clear All Logs', 'plugiva-clientguard' ),
+						'secondary',
+						'submit',
+						false,
+						array(
+							'onclick' => 'return confirm("' . esc_js(
+								esc_html__( 'Are you sure you want to clear all Sentinel logs for this site? This action cannot be undone.', 'plugiva-clientguard' )
+							) . '");',
+						)
+					);
+					?>
+				</form>
+
+			</div>
+			<!-- LOG ACTIONS END -->
 
             <?php $table->display(); ?>
 
@@ -637,22 +673,17 @@ class PCGD_Admin_Settings {
 	 *
 	 * @return void
 	 */
-	public function handle_sentinel_actions() {
-
-		if (
-			! isset( $_POST['pcgd_action'] ) ||
-			'clear_sentinel_logs' !== sanitize_key( wp_unslash( $_POST['pcgd_action'] ) )
-		) {
-			return;
-		}
+	public function handle_sentinel_clear_logs() {
 
 		if ( ! current_user_can( 'manage_options' ) ) {
-			return;
+			wp_die(
+				esc_html__( 'You do not have permission to perform this action.', 'plugiva-clientguard' )
+			);
 		}
 
 		check_admin_referer(
 			'pcgd_clear_sentinel_logs',
-			'pcgd_clear_sentinel_logs_nonce'
+			'pcgd_sentinel_nonce'
 		);
 
 		$sentinel = new PCGD_Core_Sentinel();
@@ -663,6 +694,181 @@ class PCGD_Admin_Settings {
 			admin_url( 'options-general.php?page=plugiva-clientguard&tab=sentinel' )
 		);
 		exit;
+	}
+
+	/**
+	 * Handle Sentinel human-readable CSV export.
+	 *
+	 * @since 1.7.0
+	 *
+	 * @return void
+	 */
+	public function handle_sentinel_human_export() {
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die(
+				esc_html__( 'You do not have permission to perform this action.', 'plugiva-clientguard' )
+			);
+		}
+
+		check_admin_referer(
+			'pcgd_export_sentinel_human',
+			'pcgd_sentinel_nonce'
+		);
+
+		$sentinel = new PCGD_Core_Sentinel();
+		$events   = $sentinel->get_sentinel_events( get_current_blog_id() );
+
+		nocache_headers();
+
+		header( 'Content-Type: text/csv; charset=utf-8' );
+		header( 'Content-Disposition: attachment; filename=clientguard-sentinel.csv' );
+
+		ob_start();
+
+		echo implode(
+			',',
+			array_map(
+				array( $this, 'esc_csv' ),
+				array(
+					'Time',
+					'User',
+					'Category',
+					'Details',
+				)
+			)
+		) . "\n";
+
+		foreach ( $events as $event ) {
+
+			$user = get_user_by( 'id', absint( $event['user_id'] ) );
+
+			$user_name = $user
+				? $user->display_name
+				: __( 'Unknown', 'plugiva-clientguard' );
+
+			$details = json_decode( $event['details'], true );
+
+			$text = is_array( $details ) && isset( $details['text'] )
+				? $details['text']
+				: '';
+
+			$timestamp = wp_date(
+				'M d, Y \a\t H:i:s \U\T\C',
+				strtotime( $event['created_at'] ),
+				new DateTimeZone( 'UTC' )
+			);
+
+			echo implode(
+				',',
+				array_map(
+					array( $this, 'esc_csv' ),
+					array(
+						$timestamp,
+						$user_name,
+						$event['category'],
+						$text,
+					)
+				)
+			) . "\n";
+		}
+
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo ob_get_clean();
+
+		exit;
+	}
+
+	/**
+	 * Handle Sentinel raw CSV export.
+	 *
+	 * @since 1.7.0
+	 *
+	 * @return void
+	 */
+	public function handle_sentinel_raw_export() {
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die(
+				esc_html__( 'You do not have permission to perform this action.', 'plugiva-clientguard' )
+			);
+		}
+
+		check_admin_referer(
+			'pcgd_export_sentinel_raw',
+			'pcgd_sentinel_nonce'
+		);
+
+		$sentinel = new PCGD_Core_Sentinel();
+		$events   = $sentinel->get_sentinel_events( get_current_blog_id() );
+
+		nocache_headers();
+
+		header( 'Content-Type: text/csv; charset=utf-8' );
+		header( 'Content-Disposition: attachment; filename=clientguard-sentinel-raw.csv' );
+
+		ob_start();
+
+		echo implode(
+			',',
+			array_map(
+				array( $this, 'esc_csv' ),
+				array(
+					'ID',
+					'Blog ID',
+					'User ID',
+					'Category',
+					'Event',
+					'Context',
+					'Action',
+					'Target',
+					'Details',
+					'Created At',
+				)
+			)
+		) . "\n";
+
+		foreach ( $events as $event ) {
+
+			echo implode(
+				',',
+				array_map(
+					array( $this, 'esc_csv' ),
+					array(
+						isset( $event['id'] ) ? $event['id'] : '',
+						isset( $event['blog_id'] ) ? $event['blog_id'] : '',
+						isset( $event['user_id'] ) ? $event['user_id'] : '',
+						isset( $event['category'] ) ? $event['category'] : '',
+						isset( $event['event'] ) ? $event['event'] : '',
+						isset( $event['context'] ) ? $event['context'] : '',
+						isset( $event['action'] ) ? $event['action'] : '',
+						isset( $event['target'] ) ? $event['target'] : '',
+						isset( $event['details'] ) ? $event['details'] : '',
+						isset( $event['created_at'] ) ? $event['created_at'] : '',
+					)
+				)
+			) . "\n";
+		}
+
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo ob_get_clean();
+
+		exit;
+	}
+
+	/**
+	 * Escape a value for CSV output.
+	 *
+	 * @since 1.7.0
+	 *
+	 * @param mixed $value Value to escape.
+	 * @return string Escaped CSV value.
+	 */
+	private function esc_csv( $value ) {
+		$value = (string) $value;
+		$value = str_replace( '"', '""', $value );
+
+		return '"' . $value . '"';
 	}
 
 	/**

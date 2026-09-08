@@ -128,7 +128,11 @@ class PCGD_Core_Plugin {
 
 		$this->loader->add_action( 'admin_menu', $settings, 'register_menu' );
 		$this->loader->add_action( 'admin_init', $settings, 'register_settings' );
-		$this->loader->add_action( 'admin_init', $settings, 'handle_sentinel_actions' );
+
+		// @since 1.7.0
+		$this->loader->add_action( 'admin_post_pcgd_clear_sentinel_logs', $settings, 'handle_sentinel_clear_logs' );
+		$this->loader->add_action( 'admin_post_pcgd_export_sentinel_human', $settings, 'handle_sentinel_human_export' );
+		$this->loader->add_action( 'admin_post_pcgd_export_sentinel_raw', $settings, 'handle_sentinel_raw_export' );
 
 		// Menu Guard.
 		$menu_guard = new PCGD_Admin_Menu_Guard();
