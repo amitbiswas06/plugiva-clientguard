@@ -33,13 +33,14 @@ class PCGD_Admin_Theme_Switching_Sentinel {
 	 */
 	public function register( $loader ) {
 
-		$loader->add_filter(
-			'validate_theme_requirements',
-			$this,
-			'guard_theme_switching',
-			10,
-			2
-		);
+		$loader->add_filter( 'validate_theme_requirements', $this, 'guard_theme_switching', 10, 2 );
+
+		// Network Admin site settings can change the active theme by updating
+		// the site's `template` and `stylesheet` options directly without calling switch_theme method
+		$loader->add_filter( 'pre_update_option_template', $this, 'guard_network_theme_option_update', 10, 3 );
+
+		$loader->add_filter( 'pre_update_option_stylesheet', $this, 'guard_network_theme_option_update', 10, 3 );
+
 	}
 
 	/**
@@ -72,4 +73,56 @@ class PCGD_Admin_Theme_Switching_Sentinel {
 			__( 'Theme switching is not allowed.', 'plugiva-clientguard' )
 		);
 	}
+
+	/**
+	 * Guard active theme option updates from Network Admin site settings.
+	 *
+	 * WordPress Network Admin updates the `template` and `stylesheet`
+	 * options directly from the site settings screen instead of calling
+	 * switch_theme(). Therefore, those updates do not pass through the
+	 * normal theme switching validation hook.
+	 *
+	 * This callback observes the `stylesheet` update as the operational
+	 * theme-switch event, while the `template` update is ignored to avoid
+	 * recording the same theme switch twice.
+	 *
+	 * @since 1.7.0
+	 *
+	 * @param mixed  $value     New option value.
+	 * @param mixed  $old_value Old option value.
+	 * @param string $option    Option name.
+	 * @return mixed
+	 */
+	public function guard_network_theme_option_update( $value, $old_value, $option ) {
+
+		if ( ! is_network_admin() ) {
+			return $value;
+		}
+
+		if ( 'stylesheet' !== $option ) {
+			return $value;
+		}
+
+		$action = isset( $_GET['action'] )
+			? sanitize_key( wp_unslash( $_GET['action'] ) )
+			: '';
+
+		if ( 'update-site' !== $action ) {
+			return $value;
+		}
+
+		if ( PCGD_Core_Plugin::should_bypass_protection() ) {
+
+			// Just observe multisite superadmin bypass
+			do_action(
+				'pcgd_protection_bypassed',
+				'theme_guard',
+				'switch',
+				sanitize_text_field( wp_unslash( $value ) )
+			);
+		}
+
+		return $value;
+	}
+
 }

@@ -20,9 +20,10 @@ class PCGD_Admin_Theme_Guard {
 	 * @param PCGD_Core_Loader $loader Loader instance.
 	 */
 	public function register( $loader ) {
+		// Capability layer safety
 		$loader->add_filter( 'user_has_cap', $this, 'block_theme_caps', 10, 4 );
 
-		// @since 1.7.0
+		// @since 1.7.0 - Operational layer safety
 		$theme_switching_sentinel = new PCGD_Admin_Theme_Switching_Sentinel( $this );
 		$theme_switching_sentinel->register( $loader );
 
@@ -32,6 +33,9 @@ class PCGD_Admin_Theme_Guard {
 		$theme_deletion_sentinel = new PCGD_Admin_Theme_Deletion_Sentinel( $this );
 		$theme_deletion_sentinel->register( $loader );
 
+		$loader->add_action( 'wp_ajax_edit-theme-plugin-file', $this, 'block_theme_editor_update', 1 );
+
+		// Only watcher and sentinel log for bypass on network
 		$loader->add_action( 'update_site_option_allowedthemes', $this, 'sentinel_network_theme_change', 10, 3 );
 	}
 
@@ -124,6 +128,53 @@ class PCGD_Admin_Theme_Guard {
 	}
 
 	/**
+	 * Block protected theme editor updates.
+	 *
+	 * Observes protected theme editor operations performed by bypass users
+	 * and blocks operations for users subject to ClientGuard protection.
+	 *
+	 * @since 1.7.0
+	 *
+	 * @return void
+	 */
+	public function block_theme_editor_update() {
+
+		if ( ! $this->is_theme_operation_protection_enabled() ) {
+			return;
+		}
+
+		// The edit-theme-plugin-file AJAX action is shared by theme and plugin editors.
+		$theme = isset( $_POST['theme'] )
+			? sanitize_text_field( wp_unslash( $_POST['theme'] ) )
+			: '';
+
+		if ( '' === $theme ) {
+			return;
+		}
+
+		if ( PCGD_Core_Plugin::should_bypass_protection() ) {
+
+			do_action(
+				'pcgd_protection_bypassed',
+				'theme_guard',
+				'theme_edit',
+				$theme
+			);
+
+			return;
+		}
+
+		do_action(
+			'pcgd_protection_blocked',
+			'theme_guard',
+			'theme_edit',
+			$theme
+		);
+
+		wp_die( esc_html__( 'Theme editing is protected by ClientGuard.', 'plugiva-clientguard' ) );
+	}
+
+	/**
 	 * Observe network-wide theme enable/disable.
 	 *
 	 * @since 1.7.0
@@ -139,27 +190,22 @@ class PCGD_Admin_Theme_Guard {
 			return;
 		}
 
-		$enabled = array_diff_key( $value, $old_value );
-		$disabled = array_diff_key( $old_value, $value );
+		if ( ! $this->is_theme_operation_protection_enabled() ) {
+			// no need to check superadmin since this task belongs to superadmin only
+			return;
+		}
+
+		$enabled 	= array_diff_key( $value, $old_value );
+		$disabled 	= array_diff_key( $old_value, $value );
 
 		foreach ( $enabled as $stylesheet => $enabled_value ) {
 
-			do_action(
-				'pcgd_protection_bypassed',
-				'theme_guard',
-				'network_enable',
-				$stylesheet
-			);
+			do_action( 'pcgd_protection_bypassed', 'theme_guard', 'network_enable', $stylesheet );
 		}
 
 		foreach ( $disabled as $stylesheet => $disabled_value ) {
 
-			do_action(
-				'pcgd_protection_bypassed',
-				'theme_guard',
-				'network_disable',
-				$stylesheet
-			);
+			do_action( 'pcgd_protection_bypassed', 'theme_guard', 'network_disable', $stylesheet );
 		}
 	}
 

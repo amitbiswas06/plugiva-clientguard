@@ -20,19 +20,24 @@ class PCGD_Admin_Plugin_Guard {
 	 * @param PCGD_Core_Loader $loader Loader instance.
 	 */
 	public function register( $loader ) {
+		// Capability layer safety
 		$loader->add_filter( 'user_has_cap', $this, 'filter_caps', 10, 4 );
 		$loader->add_filter( 'map_meta_cap', $this, 'block_plugin_actions', 10, 4 );
+
+		// @since 1.7.0 - Operational layer safety
 		$loader->add_filter( 'pre_update_option_active_plugins', $this, 'guard_active_plugins_transition', 10, 3 );
-	
-		// @since 1.7.0
+		$loader->add_action( 'wp_ajax_edit-theme-plugin-file', $this, 'block_plugin_editor_update', 1 );
+		
 		$deletion_sentinel = new PCGD_Admin_Plugin_Deletion_Sentinel( $this );
 		$deletion_sentinel->register( $loader );
 
 		$installation_sentinel = new PCGD_Admin_Plugin_Installation_Sentinel( $this );
 		$installation_sentinel->register( $loader );
 
+		// Only watcher and sentinel log for bypass on network
 		$loader->add_action( 'activated_plugin', $this, 'sentinel_network_plugin_activation', 10, 2 );
 		$loader->add_action( 'deactivated_plugin', $this, 'sentinel_network_plugin_deactivation', 10, 2 );
+
 	}
 
 	/**
@@ -214,6 +219,53 @@ class PCGD_Admin_Plugin_Guard {
 	}
 
 	/**
+	 * Block protected plugin editor updates.
+	 *
+	 * Observes protected plugin editor operations performed by bypass users
+	 * and blocks operations for users subject to ClientGuard protection.
+	 *
+	 * @since 1.7.0
+	 *
+	 * @return void
+	 */
+	public function block_plugin_editor_update() {
+
+		if ( ! $this->is_plugin_operation_protection_enabled() ) {
+			return;
+		}
+
+		// The edit-theme-plugin-file AJAX action is shared by theme and plugin editors.
+		$plugin = isset( $_POST['plugin'] )
+			? sanitize_text_field( wp_unslash( $_POST['plugin'] ) )
+			: '';
+
+		if ( '' === $plugin ) {
+			return;
+		}
+
+		if ( PCGD_Core_Plugin::should_bypass_protection() ) {
+
+			do_action(
+				'pcgd_protection_bypassed',
+				'plugin_guard',
+				'plugin_edit',
+				$plugin
+			);
+
+			return;
+		}
+
+		do_action(
+			'pcgd_protection_blocked',
+			'plugin_guard',
+			'plugin_edit',
+			$plugin
+		);
+
+		wp_die( esc_html__( 'Plugin editing is protected by ClientGuard.', 'plugiva-clientguard' ) );
+	}
+
+	/**
 	 * Observe successful network-wide plugin activation.
 	 *
 	 * @since 1.7.0
@@ -226,12 +278,12 @@ class PCGD_Admin_Plugin_Guard {
 			return;
 		}
 
-		do_action(
-			'pcgd_protection_bypassed',
-			'plugin_guard',
-			'network_activate',
-			$plugin
-		);
+		if ( ! $this->is_plugin_operation_protection_enabled() ) {
+			// no need to check superadmin since this task belongs to superadmin only
+			return;
+		}
+
+		do_action( 'pcgd_protection_bypassed', 'plugin_guard', 'network_activate', $plugin );
 	}
 
 	/**
@@ -247,12 +299,12 @@ class PCGD_Admin_Plugin_Guard {
 			return;
 		}
 
-		do_action(
-			'pcgd_protection_bypassed',
-			'plugin_guard',
-			'network_deactivate',
-			$plugin
-		);
+		if ( ! $this->is_plugin_operation_protection_enabled() ) {
+			// no need to check superadmin since this task belongs to superadmin only
+			return;
+		}
+
+		do_action( 'pcgd_protection_bypassed', 'plugin_guard', 'network_deactivate', $plugin );
 	}
 
 	/**

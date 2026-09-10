@@ -17,23 +17,20 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class PCGD_Core_Sentinel {
 
-	/**
-	 * Sentinel table name.
-	 *
-	 * @var string
-	 */
-	private $table_name;
+    /**
+     * Get the site-specific Sentinel table name.
+     *
+     * Uses the current WordPress blog context.
+     *
+     * @since 1.7.0
+     *
+     * @return string
+     */
+    private function get_table_name() {
+        global $wpdb;
 
-	/**
-	 * Constructor.
-	 *
-	 * @since 1.7.0
-	 */
-	public function __construct() {
-		global $wpdb;
-
-		$this->table_name = $wpdb->prefix . 'pcgd_sentinel';
-	}
+        return $wpdb->prefix . 'pcgd_sentinel';
+    }
 
     /**
      * Register Sentinel hooks.
@@ -73,11 +70,13 @@ class PCGD_Core_Sentinel {
 	public function maybe_create_table() {
 		global $wpdb;
 
+        $table_name = $this->get_table_name();
+
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 
 		$charset_collate = $wpdb->get_charset_collate();
 
-		$sql = "CREATE TABLE {$this->table_name} (
+		$sql = "CREATE TABLE {$table_name} (
 			id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
 			blog_id BIGINT(20) UNSIGNED NOT NULL,
 			user_id BIGINT(20) UNSIGNED NOT NULL,
@@ -407,6 +406,8 @@ class PCGD_Core_Sentinel {
     private function insert_sentinel_event( $category, $event, $context, $target, $details, $hook ) {
         global $wpdb;
 
+        $table_name = $this->get_table_name();
+
         $category = sanitize_key( $category );
         $event    = sanitize_key( $event );
         $context  = sanitize_key( $context );
@@ -425,11 +426,11 @@ class PCGD_Core_Sentinel {
         $table_exists = $wpdb->get_var(
             $wpdb->prepare(
                 'SHOW TABLES LIKE %s',
-                $wpdb->esc_like( $this->table_name )
+                $wpdb->esc_like( $table_name )
             )
         );
 
-        if ( $this->table_name !== $table_exists ) {
+        if ( $table_name !== $table_exists ) {
             return false;
         }
 
@@ -441,7 +442,7 @@ class PCGD_Core_Sentinel {
         }
 
         $inserted = $wpdb->insert(
-            $this->table_name,
+            $table_name,
             array(
                 'blog_id'    => $blog_id,
                 'user_id'    => $user_id,
@@ -490,6 +491,8 @@ class PCGD_Core_Sentinel {
     private function cleanup_sentinel_events( $blog_id ) {
         global $wpdb;
 
+        $table_name = $this->get_table_name();
+
         $blog_id = absint( $blog_id );
 
         if ( $blog_id < 1 ) {
@@ -499,7 +502,7 @@ class PCGD_Core_Sentinel {
         $count = (int) $wpdb->get_var(
             $wpdb->prepare(
                 "SELECT COUNT(*)
-                FROM {$this->table_name}
+                FROM {$table_name}
                 WHERE blog_id = %d",
                 $blog_id
             )
@@ -513,7 +516,7 @@ class PCGD_Core_Sentinel {
 
         $wpdb->query(
             $wpdb->prepare(
-                "DELETE FROM {$this->table_name}
+                "DELETE FROM {$table_name}
                 WHERE blog_id = %d
                 ORDER BY created_at ASC, id ASC
                 LIMIT %d",
@@ -536,6 +539,8 @@ class PCGD_Core_Sentinel {
     public function delete_sentinel_events( $blog_id ) {
         global $wpdb;
 
+        $table_name = $this->get_table_name();
+
         $blog_id = absint( $blog_id );
 
         if ( $blog_id < 1 ) {
@@ -544,7 +549,7 @@ class PCGD_Core_Sentinel {
 
         $deleted = $wpdb->query(
             $wpdb->prepare(
-                "DELETE FROM {$this->table_name}
+                "DELETE FROM {$table_name}
                 WHERE blog_id = %d",
                 $blog_id
             )
@@ -567,6 +572,8 @@ class PCGD_Core_Sentinel {
     public function get_sentinel_events( $blog_id ) {
         global $wpdb;
 
+        $table_name = $this->get_table_name();
+
         $blog_id = absint( $blog_id );
 
         if ( $blog_id < 1 ) {
@@ -576,7 +583,7 @@ class PCGD_Core_Sentinel {
         $results = $wpdb->get_results(
             $wpdb->prepare(
                 "SELECT id, blog_id, user_id, category, event, context, action, target, details, created_at
-                FROM {$this->table_name}
+                FROM {$table_name}
                 WHERE blog_id = %d
                 ORDER BY created_at DESC, id DESC",
                 $blog_id
