@@ -95,6 +95,39 @@ class PCGD_Core_Sentinel {
 	}
 
     /**
+     * Delete the Sentinel table.
+     *
+     * This is intended for explicit developer-controlled cleanup during
+     * plugin uninstall. Sentinel data is preserved by default.
+     *
+     * @since 1.7.0
+     *
+     * @return bool True on success, false on failure.
+     */
+    public function delete_table() {
+        global $wpdb;
+
+        $table_name = $this->get_table_name();
+
+        $table_exists = $wpdb->get_var(
+            $wpdb->prepare(
+                'SHOW TABLES LIKE %s',
+                $wpdb->esc_like( $table_name )
+            )
+        );
+
+        if ( $table_name !== $table_exists ) {
+            return true;
+        }
+
+        $deleted = $wpdb->query(
+            "DROP TABLE {$table_name}"
+        );
+
+        return false !== $deleted;
+    }
+
+    /**
      * Helper
      * Determine the Sentinel event category from a hook.
      *
@@ -391,6 +424,50 @@ class PCGD_Core_Sentinel {
     }
 
     /**
+     * Record a Sentinel lifecycle event.
+     *
+     * @since 1.7.0
+     *
+     * @param string $event  Lifecycle event name.
+     * @param string $target Event target.
+     * @return bool True on success, false on failure.
+     */
+    public function record_lifecycle_event( $event, $target = 'clientguard' ) {
+
+        $event  = sanitize_key( $event );
+        $target = sanitize_text_field( $target );
+
+        if ( '' === $event || '' === $target ) {
+            return false;
+        }
+
+        $details = wp_json_encode(
+            array(
+                'old_value' => null,
+                'new_value' => null,
+                'text'      => sprintf(
+                    /* translators: 1: event name. */
+                    __( 'ClientGuard %s.', 'plugiva-clientguard' ),
+                    $event
+                ),
+            )
+        );
+
+        if ( false === $details ) {
+            return false;
+        }
+
+        return $this->insert_sentinel_event(
+            'lifecycle',
+            $event,
+            'clientguard',
+            $target,
+            $details,
+            'pcgd_clientguard_lifecycle'
+        );
+    }
+
+    /**
      * Insert a Sentinel event into the database.
      *
      * @since 1.7.0
@@ -419,7 +496,7 @@ class PCGD_Core_Sentinel {
             return false;
         }
 
-        if ( ! in_array( $category, array( 'config', 'operational' ), true ) ) {
+        if ( ! in_array( $category, array( 'config', 'operational', 'lifecycle' ), true ) ) {
             return false;
         }
 
