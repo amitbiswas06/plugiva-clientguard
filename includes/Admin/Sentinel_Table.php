@@ -243,25 +243,32 @@ class PCGD_Admin_Sentinel_Table extends WP_List_Table {
             array(),
         );
 
-        $per_page       = 50;
+        $per_page       = 20;
         $current_page   = $this->get_pagenum();
         $offset         = ( $current_page - 1 ) * $per_page;
 
         $blog_id        = absint( get_current_blog_id() );
 
+        $table_name = $this->table_name;
+
+        // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Trusted Sentinel table name; %i requires WordPress 6.2+.
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom Sentinel table requires a direct query and should reflect current audit data.
         $total_items = (int) $wpdb->get_var(
             $wpdb->prepare(
                 "SELECT COUNT(*)
-                FROM {$this->table_name}
+                FROM {$table_name}
                 WHERE blog_id = %d",
                 $blog_id
             )
         );
+        // phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
+        // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Trusted Sentinel table name; %i requires WordPress 6.2+.
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom Sentinel table requires a direct query and should reflect current audit data.
         $this->items = $wpdb->get_results(
             $wpdb->prepare(
                 "SELECT id, blog_id, user_id, category, event, context, target, details, created_at
-                FROM {$this->table_name}
+                FROM {$table_name}
                 WHERE blog_id = %d
                 ORDER BY created_at DESC, id DESC
                 LIMIT %d OFFSET %d",
@@ -270,6 +277,7 @@ class PCGD_Admin_Sentinel_Table extends WP_List_Table {
                 $offset
             )
         );
+        // phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
         $this->set_pagination_args(
             array(

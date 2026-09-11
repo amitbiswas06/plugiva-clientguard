@@ -45,15 +45,15 @@ function pcgd_uninstall_cleanup_site() {
  */
 if ( is_multisite() ) {
 
-	$site_ids = get_sites(
+	$pcgd_site_ids = get_sites(
 		array(
 			'fields' => 'ids',
 		)
 	);
 
-	foreach ( $site_ids as $site_id ) {
+	foreach ( $pcgd_site_ids as $pcgd_site_id ) {
 
-		switch_to_blog( $site_id );
+		switch_to_blog( $pcgd_site_id );
 
 		pcgd_uninstall_cleanup_site();
 
@@ -72,9 +72,11 @@ if ( is_multisite() ) {
  */
 global $wpdb;
 
+// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- Uninstall cleanup removes one known ClientGuard user meta key.
 $wpdb->delete(
 	$wpdb->usermeta,
 	array(
+		// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- Uninstall cleanup removes one known ClientGuard user meta key.
 		'meta_key' => 'pcgd_client_mode_notice_dismissed',
 	),
 	array(

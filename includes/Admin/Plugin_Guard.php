@@ -235,11 +235,19 @@ class PCGD_Admin_Plugin_Guard {
 		}
 
 		// The edit-theme-plugin-file AJAX action is shared by theme and plugin editors.
+		$file = isset( $_POST['file'] )
+			? sanitize_text_field( wp_unslash( $_POST['file'] ) )
+			: '';
+
 		$plugin = isset( $_POST['plugin'] )
 			? sanitize_text_field( wp_unslash( $_POST['plugin'] ) )
 			: '';
 
-		if ( '' === $plugin ) {
+		if ( '' === $plugin || '' === $file ) {
+			return;
+		}
+
+		if ( ! check_ajax_referer( 'edit-plugin_' . $file, 'nonce', false ) ) {
 			return;
 		}
 

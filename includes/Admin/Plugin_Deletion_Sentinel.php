@@ -61,37 +61,13 @@ class PCGD_Admin_Plugin_Deletion_Sentinel {
 	 */
 	public function register( $loader ) {
 
-		$loader->add_action(
-			'pre_uninstall_plugin',
-			$this,
-			'protect_uninstall',
-			10,
-			2
-		);
+		$loader->add_action( 'pre_uninstall_plugin', $this, 'protect_uninstall', 10, 2 );
 
-		$loader->add_filter(
-			'option_uninstall_plugins',
-			$this,
-			'filter_uninstall_plugins',
-			10,
-			2
-		);
+		$loader->add_filter( 'option_uninstall_plugins', $this, 'filter_uninstall_plugins', 10, 2 );
 
-		$loader->add_action(
-			'delete_plugin',
-			$this,
-			'intercept_plugin_deletion',
-			10,
-			1
-		);
+		$loader->add_action( 'delete_plugin', $this, 'intercept_plugin_deletion', 10, 1 );
 
-		$loader->add_action(
-			'deleted_plugin',
-			$this,
-			'finish_plugin_deletion',
-			10,
-			2
-		);
+		$loader->add_action( 'deleted_plugin', $this, 'finish_plugin_deletion', 10, 2 );
 	}
 
 	/**
@@ -130,6 +106,30 @@ class PCGD_Admin_Plugin_Deletion_Sentinel {
 	}
 
 	/**
+	 * Get the WordPress filesystem instance.
+	 *
+	 * Initializes the filesystem API when necessary.
+	 *
+	 * @return WP_Filesystem_Base|null Filesystem instance, or null on failure.
+	 */
+	private function get_filesystem() {
+
+		global $wp_filesystem;
+
+		if ( ! is_object( $wp_filesystem ) ) {
+			require_once ABSPATH . 'wp-admin/includes/file.php';
+
+			WP_Filesystem();
+		}
+
+		if ( ! is_object( $wp_filesystem ) ) {
+			return null;
+		}
+
+		return $wp_filesystem;
+	}
+
+	/**
 	 * Suppress uninstall.php temporarily.
 	 */
 	private function suppress_uninstall_file() {
@@ -143,7 +143,13 @@ class PCGD_Admin_Plugin_Deletion_Sentinel {
 
 		$temp = $plugin_dir . '/.pcgd-uninstall.php';
 
-		if ( @rename( $uninstall, $temp ) ) {
+		$filesystem = $this->get_filesystem();
+
+		if ( ! $filesystem ) {
+			return;
+		}
+
+		if ( $filesystem->move( $uninstall, $temp, true ) ) {
 			$this->uninstall_restore = array(
 				'original' => $uninstall,
 				'temp'     => $temp,
@@ -253,10 +259,19 @@ class PCGD_Admin_Plugin_Deletion_Sentinel {
 		$temp     = $this->uninstall_restore['temp'];
 
 		if (
-			! file_exists( $original ) &&
-			file_exists( $temp )
+			file_exists( $original ) ||
+			! file_exists( $temp )
 		) {
-			@rename( $temp, $original );
+			return;
 		}
+
+		$filesystem = $this->get_filesystem();
+
+		if ( ! $filesystem ) {
+			return;
+		}
+
+		$filesystem->move( $temp, $original, true );
 	}
+
 }

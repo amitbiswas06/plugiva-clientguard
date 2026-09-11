@@ -449,9 +449,6 @@ class PCGD_Admin_Settings {
 			// Get effective state considering Client Mode and dependencies.
 			// @since 1.3.0 - moved logic to separate class for better organization and future extensibility.
 			$state 			= PCGD_Admin_Settings_State::get_menu_state( $slug, $settings );
-			$checked_attr 	= checked( $state['checked'], true, false );
-			$disabled_attr 	= disabled( $state['disabled'], true, false );
-
 			$display_label 	= $label;
 
 			if ( ! empty( $state['note'] ) ) {
@@ -469,8 +466,8 @@ class PCGD_Admin_Settings {
 				</label>',
 				esc_attr( self::OPTION_NAME . '[hide_menus]' ),
 				esc_attr( $slug ),
-				$checked_attr,
-				$disabled_attr,
+				checked( $state['checked'], true, false ),
+				disabled( $state['disabled'], true, false ),
 				wp_kses( $display_label, array(
 					'small' => array(
 						'style' => array(),
@@ -503,9 +500,8 @@ class PCGD_Admin_Settings {
 	 */
 	public function render_page() {
 
-		$tab = isset( $_GET['tab'] )
-			? sanitize_key( wp_unslash( $_GET['tab'] ) )
-			: 'general';
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Tab is read-only navigation input; no state-changing operation is performed.
+		$tab = isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : 'general';
 
 		$allowed_tabs = array( 'general', 'sentinel' );
 
@@ -726,8 +722,10 @@ class PCGD_Admin_Settings {
 
 		ob_start();
 
+		// CSV export: raw output intended (non-HTML)
 		echo implode(
 			',',
+			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- CSV values are escaped by esc_csv().
 			array_map(
 				array( $this, 'esc_csv' ),
 				array(
@@ -761,6 +759,7 @@ class PCGD_Admin_Settings {
 
 			echo implode(
 				',',
+				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- CSV values are escaped by esc_csv().
 				array_map(
 					array( $this, 'esc_csv' ),
 					array(
@@ -809,8 +808,10 @@ class PCGD_Admin_Settings {
 
 		ob_start();
 
+		// CSV export: raw output intended (non-HTML)
 		echo implode(
 			',',
+			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- CSV values are escaped by esc_csv().
 			array_map(
 				array( $this, 'esc_csv' ),
 				array(
@@ -832,6 +833,7 @@ class PCGD_Admin_Settings {
 
 			echo implode(
 				',',
+				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- CSV values are escaped by esc_csv().
 				array_map(
 					array( $this, 'esc_csv' ),
 					array(

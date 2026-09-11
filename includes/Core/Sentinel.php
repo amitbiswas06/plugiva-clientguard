@@ -109,6 +109,7 @@ class PCGD_Core_Sentinel {
 
         $table_name = $this->get_table_name();
 
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Checks current Sentinel table existence during database setup/maintenance.
         $table_exists = $wpdb->get_var(
             $wpdb->prepare(
                 'SHOW TABLES LIKE %s',
@@ -120,9 +121,12 @@ class PCGD_Core_Sentinel {
             return true;
         }
 
+        // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.SchemaChange -- Trusted Sentinel table name; %i requires WordPress 6.2+. DROP TABLE is intentional during plugin uninstall.
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Explicit Sentinel table cleanup during plugin uninstall; table name is generated internally and is not user input.
         $deleted = $wpdb->query(
             "DROP TABLE {$table_name}"
         );
+        // phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.SchemaChange
 
         return false !== $deleted;
     }
@@ -500,6 +504,7 @@ class PCGD_Core_Sentinel {
             return false;
         }
 
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Checks current Sentinel table existence during database setup/maintenance.
         $table_exists = $wpdb->get_var(
             $wpdb->prepare(
                 'SHOW TABLES LIKE %s',
@@ -518,6 +523,7 @@ class PCGD_Core_Sentinel {
             return false;
         }
 
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Sentinel events must be written directly to the custom audit table.
         $inserted = $wpdb->insert(
             $table_name,
             array(
@@ -576,6 +582,8 @@ class PCGD_Core_Sentinel {
             return;
         }
 
+        // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Trusted Sentinel table name; %i requires WordPress 6.2+.
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Custom Sentinel table requires a direct query; table name is generated internally and is not user input.
         $count = (int) $wpdb->get_var(
             $wpdb->prepare(
                 "SELECT COUNT(*)
@@ -584,6 +592,7 @@ class PCGD_Core_Sentinel {
                 $blog_id
             )
         );
+        // phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
         if ( $count <= 500 ) {
             return;
@@ -591,6 +600,8 @@ class PCGD_Core_Sentinel {
 
         $excess = $count - 500;
 
+        // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Trusted Sentinel table name; %i requires WordPress 6.2+.
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Custom Sentinel cleanup requires a direct query; table name is generated internally and is not user input.
         $wpdb->query(
             $wpdb->prepare(
                 "DELETE FROM {$table_name}
@@ -601,6 +612,7 @@ class PCGD_Core_Sentinel {
                 $excess
             )
         );
+        // phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
     }
 
     /**
@@ -624,6 +636,8 @@ class PCGD_Core_Sentinel {
             return false;
         }
 
+        // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Trusted Sentinel table name; %i requires WordPress 6.2+.
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Custom Sentinel cleanup requires a direct query; table name is generated internally and is not user input.
         $deleted = $wpdb->query(
             $wpdb->prepare(
                 "DELETE FROM {$table_name}
@@ -631,6 +645,7 @@ class PCGD_Core_Sentinel {
                 $blog_id
             )
         );
+        // phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
         return false !== $deleted;
     }
@@ -657,6 +672,8 @@ class PCGD_Core_Sentinel {
             return array();
         }
 
+        // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Trusted Sentinel table name; %i requires WordPress 6.2+.
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Custom Sentinel table requires a direct query for current audit data; table name is generated internally and is not user input.
         $results = $wpdb->get_results(
             $wpdb->prepare(
                 "SELECT id, blog_id, user_id, category, event, context, action, target, details, created_at
@@ -667,6 +684,7 @@ class PCGD_Core_Sentinel {
             ),
             ARRAY_A
         );
+        // phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
         if ( ! is_array( $results ) ) {
             return array();

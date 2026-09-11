@@ -114,7 +114,7 @@ class PCGD_Admin_Content_Guard {
             defined( 'REST_REQUEST' )
             && REST_REQUEST
             && isset( $_SERVER['REQUEST_METHOD'] )
-            && 'GET' === strtoupper( $_SERVER['REQUEST_METHOD'] )
+            && 'GET' === strtoupper( sanitize_text_field( wp_unslash( $_SERVER['REQUEST_METHOD'] ) ) )
         ) {
             return $caps;
         }

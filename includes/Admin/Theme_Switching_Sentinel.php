@@ -103,9 +103,8 @@ class PCGD_Admin_Theme_Switching_Sentinel {
 			return $value;
 		}
 
-		$action = isset( $_GET['action'] )
-			? sanitize_key( wp_unslash( $_GET['action'] ) )
-			: '';
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Action is read-only request context; no state-changing operation is performed here.
+		$action = isset( $_GET['action'] ) ? sanitize_key( wp_unslash( $_GET['action'] ) ) : '';
 
 		if ( 'update-site' !== $action ) {
 			return $value;
