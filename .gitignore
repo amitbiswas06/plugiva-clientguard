@@ -18,3 +18,4 @@ yarn-error.log*
 # Temporary / export files
 *.zip
 *.log
+*-commits.txt
