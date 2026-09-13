@@ -58,6 +58,8 @@ class PCGD_Core_Sentinel {
 
         $loader->add_action( 'pcgd_protected_content_removed', $this, 'record_config_event', 10, 3 );
 
+        $loader->add_action( 'delete_option_pcgd_settings', $this, 'record_option_deletion', 10, 1 );
+
     }
 
 	/**
@@ -468,6 +470,26 @@ class PCGD_Core_Sentinel {
             $target,
             $details,
             'pcgd_clientguard_lifecycle'
+        );
+    }
+
+    /**
+     * Record deletion of the ClientGuard settings option.
+     *
+     * @since 1.7.0
+     *
+     * @param string $option Deleted option name.
+     * @return void
+     */
+    public function record_option_deletion( $option ) {
+
+        if ( defined( 'WP_UNINSTALL_PLUGIN' ) ) {
+            return;
+        }
+
+        $this->record_lifecycle_event(
+            'option_deleted',
+            $option
         );
     }
 
