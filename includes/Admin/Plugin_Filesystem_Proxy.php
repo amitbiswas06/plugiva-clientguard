@@ -45,8 +45,13 @@ class PCGD_Plugin_Filesystem_Proxy {
 	 */
 	public function delete( $file, $recursive = false, $type = false ) {
 
+		// WordPress also supports plugins with the main file directly in `WP_PLUGIN_DIR`.
+		// Resolve those as the plugin root so they receive the same filesystem protection.
+		// @since 1.7.1
 		$plugin_dir = trailingslashit(
-			WP_PLUGIN_DIR . '/' . dirname( $this->plugin_file )
+			'.' === dirname( $this->plugin_file )
+				? WP_PLUGIN_DIR
+				: WP_PLUGIN_DIR . '/' . dirname( $this->plugin_file )
 		);
 
 		$normalized_file = wp_normalize_path( $file );

@@ -4,7 +4,7 @@ Tags: admin, safety, guardrails, client mode, hide menu
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.7.0
+Stable tag: 1.7.1
 License: GPL v2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -191,7 +191,11 @@ Additional hooks may be introduced in future versions.
 
 == Changelog ==
 
-= 1.7.0 =
+= 1.7.1 - September 2026 =
+* Fixed plugin deletion protection for plugins with their main file located directly in `wp-content/plugins/`.
+* Improved filesystem path handling for both root-level and directory-based plugins.
+
+= 1.7.0 - September 2026 =
 * Added operational protection for plugin and theme installation, deletion, activation, deactivation, switching, and editing.
 * Extended protection to critical settings, including Permalinks and Site Identity options.
 * Extended Content Protection to prevent protected pages from being trashed or permanently deleted.
@@ -263,6 +267,9 @@ Additional hooks may be introduced in future versions.
 * Initial release.
 
 == Upgrade Notice ==
+
+= 1.7.1 =
+Fixes an edge case where plugin deletion protection could fail for plugins with their main file located directly in `wp-content/plugins/`.
 
 = 1.7.0 =
 Adds operational protection for plugins, themes, settings, content, and other sensitive WordPress operations, along with Sentinel event logging for ClientGuard-related activity. Also adds multisite-aware protection and event handling.
