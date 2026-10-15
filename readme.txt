@@ -41,6 +41,12 @@ ClientGuard is ideal for:
 - Teams that want a simplified and safer admin experience
 - Sites where administrative changes need to remain controlled and observable
 
+== See ClientGuard in action ==
+
+Watch the demo to see how Plugiva ClientGuard helps control selected WordPress administrative operations.
+
+https://www.youtube.com/watch?v=zsaTnmASIzE
+
 == Client Mode ==
 
 Enable Client Mode to apply ClientGuard's protection controls with one click:
