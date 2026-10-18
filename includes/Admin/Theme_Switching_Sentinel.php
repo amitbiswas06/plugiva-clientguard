@@ -35,11 +35,12 @@ class PCGD_Admin_Theme_Switching_Sentinel {
 
 		$loader->add_filter( 'validate_theme_requirements', $this, 'guard_theme_switching', 10, 2 );
 
-		// Network Admin site settings can change the active theme by updating
-		// the site's `template` and `stylesheet` options directly without calling switch_theme method
-		$loader->add_filter( 'pre_update_option_template', $this, 'guard_network_theme_option_update', 10, 3 );
+		// Protect direct changes to the active theme state.
+		$loader->add_filter( 'pre_update_option_template', $this, 'guard_active_theme_option_update', 10, 3 );
+		$loader->add_filter( 'pre_update_option_stylesheet', $this, 'guard_active_theme_option_update', 10, 3 );
 
-		$loader->add_filter( 'pre_update_option_stylesheet', $this, 'guard_network_theme_option_update', 10, 3 );
+		// Protect deletion of the active theme state options.
+		$loader->add_action( 'delete_option', $this, 'protect_active_theme_option_delete', 10, 1 );
 
 	}
 
@@ -75,53 +76,74 @@ class PCGD_Admin_Theme_Switching_Sentinel {
 	}
 
 	/**
-	 * Guard active theme option updates from Network Admin site settings.
+	 * Guard direct updates to active theme state options.
 	 *
-	 * WordPress Network Admin updates the `template` and `stylesheet`
-	 * options directly from the site settings screen instead of calling
-	 * switch_theme(). Therefore, those updates do not pass through the
-	 * normal theme switching validation hook.
-	 *
-	 * This callback observes the `stylesheet` update as the operational
-	 * theme-switch event, while the `template` update is ignored to avoid
-	 * recording the same theme switch twice.
-	 *
-	 * @since 1.7.0
+	 * @since 1.7.2
 	 *
 	 * @param mixed  $value     New option value.
 	 * @param mixed  $old_value Old option value.
 	 * @param string $option    Option name.
 	 * @return mixed
 	 */
-	public function guard_network_theme_option_update( $value, $old_value, $option ) {
+	public function guard_active_theme_option_update( $value, $old_value, $option ) {
 
-		if ( ! is_network_admin() ) {
+		if ( ! in_array( $option, array( 'template', 'stylesheet' ), true ) ) {
 			return $value;
 		}
 
-		if ( 'stylesheet' !== $option ) {
+		// Do not log or block an update that makes no change.
+		if ( $value === $old_value ) {
 			return $value;
 		}
 
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Action is read-only request context; no state-changing operation is performed here.
-		$action = isset( $_GET['action'] ) ? sanitize_key( wp_unslash( $_GET['action'] ) ) : '';
+		if ( ! $this->guard->is_theme_operations_protected() ) {
 
-		if ( 'update-site' !== $action ) {
+			if (
+				$this->guard->is_theme_operation_protection_enabled()
+				&& PCGD_Core_Plugin::should_bypass_protection()
+			) {
+				do_action( 'pcgd_protection_bypassed', 'theme_guard', 'update', $option );
+			}
+
 			return $value;
 		}
 
-		if ( PCGD_Core_Plugin::should_bypass_protection() ) {
+		do_action( 'pcgd_protection_blocked', 'theme_guard', 'update', $option );
 
-			// Just observe multisite superadmin bypass
-			do_action(
-				'pcgd_protection_bypassed',
-				'theme_guard',
-				'switch',
-				sanitize_text_field( wp_unslash( $value ) )
-			);
+		return $old_value;
+	}
+	
+	/**
+	 * Protect active theme state options from deletion.
+	 *
+	 * @since 1.7.2
+	 *
+	 * @param string $option Option name.
+	 * @return void
+	 */
+	public function protect_active_theme_option_delete( $option ) {
+
+		$option = sanitize_key( $option );
+
+		if ( ! in_array( $option, array( 'template', 'stylesheet' ), true ) ) {
+			return;
 		}
 
-		return $value;
+		if ( ! $this->guard->is_theme_operations_protected() ) {
+
+			if (
+				$this->guard->is_theme_operation_protection_enabled()
+				&& PCGD_Core_Plugin::should_bypass_protection()
+			) {
+				do_action( 'pcgd_protection_bypassed', 'theme_guard', 'delete', $option );
+			}
+
+			return;
+		}
+
+		do_action( 'pcgd_protection_blocked', 'theme_guard', 'delete', $option );
+
+		PCGD_Core_Plugin::block_protected_option_deletion( $option );
 	}
 
 }

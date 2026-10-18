@@ -26,6 +26,7 @@ class PCGD_Admin_Plugin_Guard {
 
 		// @since 1.7.0 - Operational layer safety
 		$loader->add_filter( 'pre_update_option_active_plugins', $this, 'guard_active_plugins_transition', 10, 3 );
+		$loader->add_action( 'delete_option', $this, 'protect_active_plugins_delete', 10, 1 ); // @since 1.7.2
 		$loader->add_action( 'wp_ajax_edit-theme-plugin-file', $this, 'block_plugin_editor_update', 1 );
 		
 		$deletion_sentinel = new PCGD_Admin_Plugin_Deletion_Sentinel( $this );
@@ -216,6 +217,37 @@ class PCGD_Admin_Plugin_Guard {
 		}
 
 		return $old_value;
+	}
+
+	/**
+	 * Protect deletion of the active plugin state option.
+	 *
+	 * @since 1.7.2
+	 *
+	 * @param string $option Option name being deleted.
+	 * @return void
+	 */
+	public function protect_active_plugins_delete( $option ) {
+
+		if ( 'active_plugins' !== $option ) {
+			return;
+		}
+
+		if ( ! $this->is_plugin_operations_protected() ) {
+
+			if (
+				$this->is_plugin_operation_protection_enabled()
+				&& PCGD_Core_Plugin::should_bypass_protection()
+			) {
+				do_action( 'pcgd_protection_bypassed', 'plugin_guard', 'delete', 'active_plugins' );
+			}
+
+			return;
+		}
+
+		do_action( 'pcgd_protection_blocked', 'plugin_guard', 'delete', 'active_plugins' );
+
+		PCGD_Core_Plugin::block_protected_option_deletion( 'active_plugins' );
 	}
 
 	/**

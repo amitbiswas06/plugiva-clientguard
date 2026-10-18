@@ -4,11 +4,11 @@ Tags: admin, safety, guardrails, client mode, hide menu
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.7.1
+Stable tag: 1.7.2
 License: GPL v2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Simplify the WordPress admin and help prevent unintended changes with safe defaults and Client Mode.
+WordPress admin guardrails that simplify the dashboard and help prevent unintended changes with Client Mode.
 
 == Description ==
 
@@ -197,6 +197,11 @@ Additional hooks may be introduced in future versions.
 
 == Changelog ==
 
+= 1.7.2 - October 2026 =
+* Strengthened protection for the active theme's `template` and `stylesheet` options against unauthorized updates and deletion.
+* Improved no-op handling in Appearance and Site Identity option guards to avoid blocking or logging unchanged values.
+* Improved consistency in protection checks for sidebar widgets, widget block settings, and Site Identity options.
+
 = 1.7.1 - September 2026 =
 * Fixed plugin deletion protection for plugins with their main file located directly in `wp-content/plugins/`.
 * Improved filesystem path handling for both root-level and directory-based plugins.
@@ -273,6 +278,9 @@ Additional hooks may be introduced in future versions.
 * Initial release.
 
 == Upgrade Notice ==
+
+= 1.7.2 =
+Strengthens protection for active theme state options and improves handling of unchanged values in Appearance and Site Identity settings.
 
 = 1.7.1 =
 Fixes an edge case where plugin deletion protection could fail for plugins with their main file located directly in `wp-content/plugins/`.

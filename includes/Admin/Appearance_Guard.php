@@ -120,18 +120,38 @@ class PCGD_Admin_Appearance_Guard {
 	}
 
 	/**
-	 * Prevents protected sidebar widgets from being updated.
+	 * Prevents protected sidebar widgets from being updated, except when
+	 * WordPress reconciles widget assignments after an unrestricted theme switch.
+	 *
+	 * @since 1.7.2
 	 *
 	 * @param mixed  $value     New option value.
 	 * @param mixed  $old_value Previous option value.
 	 * @param string $option    Protected option name.
-	 * @return mixed New value when protection is inactive, otherwise previous value.
+	 * @return mixed New value when protection is inactive or reconciliation is allowed;
+	 *               otherwise, the previous value.
 	 */
 	public function protect_sidebars_widgets_update( $value, $old_value, $option ) {
+	
+		// Allow WordPress to reconcile widget assignments after a theme switch
+		// only when theme switching is not protected.
+		if ( doing_action( 'after_switch_theme' ) ) {
+
+			$theme_guard = new PCGD_Admin_Theme_Guard();
+
+			if ( ! $theme_guard->is_theme_operations_protected() ) {
+				return $value;
+			}
+		}
+
+		// Do not log or block an update that makes no change.
+		if ( $value === $old_value ) {
+			return $value;
+		}
 
 		if ( ! $this->is_appearance_protection_active() ) {
 
-			if ( $value !== $old_value && $this->is_appearance_protection_enabled() && PCGD_Core_Plugin::should_bypass_protection() ) {
+			if ( $this->is_appearance_protection_enabled() && PCGD_Core_Plugin::should_bypass_protection() ) {
 
 				// Notify ClientGuard Sentinel that a protected sidebar widget update was bypassed.
 				// @since 1.7.0
@@ -198,9 +218,15 @@ class PCGD_Admin_Appearance_Guard {
 	 */
 	public function protect_widget_block_update( $value, $old_value, $option ) {
 
+		// Do not log or block an update that makes no change.
+		// @since 1.7.2
+		if ( $value === $old_value ) {
+			return $value;
+		}
+
 		if ( ! $this->is_appearance_protection_active() ) {
 
-			if ( $value !== $old_value && $this->is_appearance_protection_enabled() && PCGD_Core_Plugin::should_bypass_protection() ) {
+			if ( $this->is_appearance_protection_enabled() && PCGD_Core_Plugin::should_bypass_protection() ) {
 
 				// Notify ClientGuard Sentinel that a protected block widget update was bypassed.
 				// @since 1.7.0
@@ -297,6 +323,8 @@ class PCGD_Admin_Appearance_Guard {
 	/**
 	 * Prevents protected Site Identity options from being updated.
 	 *
+	 * @since 1.7.2
+	 * 
 	 * @param mixed  $value     New option value.
 	 * @param mixed  $old_value Previous option value.
 	 * @param string $option    Protected Site Identity option name.
@@ -304,20 +332,25 @@ class PCGD_Admin_Appearance_Guard {
 	 */
 	public function protect_site_identity_option_update( $value, $old_value, $option ) {
 
+		$changed = $value !== $old_value;
+
+		if ( in_array( $option, array( 'site_logo', 'site_icon' ), true ) ) {
+
+			if ( false === $value || false === $old_value ) {
+				$changed = $value !== $old_value;
+			} else {
+				$changed = (int) $value !== (int) $old_value;
+			}
+		}
+
+		// Do not log or block an update that makes no change.
+		if ( ! $changed ) {
+			return $value;
+		}
+
 		if ( ! $this->is_appearance_protection_active() ) {
 
-			$changed = $value !== $old_value;
-
-			if ( in_array( $option, array( 'site_logo', 'site_icon' ), true ) ) {
-
-				if ( false === $value || false === $old_value ) {
-					$changed = $value !== $old_value;
-				} else {
-					$changed = (int) $value !== (int) $old_value;
-				}
-			}
-
-			if ( $changed && $this->is_appearance_protection_enabled() && PCGD_Core_Plugin::should_bypass_protection() ) {
+			if ( $this->is_appearance_protection_enabled() && PCGD_Core_Plugin::should_bypass_protection() ) {
 
 				// Notify ClientGuard Sentinel that a protected Site Identity update was bypassed.
 				// @since 1.7.0
