@@ -199,6 +199,7 @@ Additional hooks may be introduced in future versions.
 
 = 1.7.2 - October 2026 =
 * Strengthened protection for the active theme's `template` and `stylesheet` options against unauthorized updates and deletion.
+* Added protection against deletion of the `active_plugins` option to prevent unintended deactivation of all plugins.
 * Improved no-op handling in Appearance and Site Identity option guards to avoid blocking or logging unchanged values.
 * Improved consistency in protection checks for sidebar widgets, widget block settings, and Site Identity options.
 
@@ -280,7 +281,7 @@ Additional hooks may be introduced in future versions.
 == Upgrade Notice ==
 
 = 1.7.2 =
-Strengthens protection for active theme state options and improves handling of unchanged values in Appearance and Site Identity settings.
+Strengthens protection for active theme state options and the active plugin state, while improving handling of unchanged values in Appearance and Site Identity settings.
 
 = 1.7.1 =
 Fixes an edge case where plugin deletion protection could fail for plugins with their main file located directly in `wp-content/plugins/`.
