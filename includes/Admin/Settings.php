@@ -156,7 +156,7 @@ class PCGD_Admin_Settings {
 
 		add_settings_field(
 			'protected_content',
-			esc_html__( 'Protected Content', 'plugiva-clientguard' ),
+			esc_html__( 'Protection Rules', 'plugiva-clientguard' ),
 			array( $this, 'render_protected_content' ),
 			'plugiva-clientguard',
 			'pcgd_section_content'
@@ -242,7 +242,7 @@ class PCGD_Admin_Settings {
 			foreach ( $input['protected_content'] as $post_id ) {
 				$post_id = absint( $post_id );
 
-				if ( $post_id && get_post( $post_id ) ) {
+				if ( $post_id && get_post( $post_id ) && ! in_array( $post_id, $clean, true ) ) {
 					$clean[] = $post_id;
 				}
 			}
@@ -370,55 +370,280 @@ class PCGD_Admin_Settings {
 					return get_post( $post_id );
 				}
 			);
-		?>
-		<div id="pcgd-content-protection">
 
-			<div style="margin-bottom:10px;">
-				<input type="text"
-					id="pcgd-page-search"
-					class="regular-text"
-					placeholder="<?php esc_attr_e( 'Search pages by title…', 'plugiva-clientguard' ); ?>" />
-				<button type="button"
-						class="button button-primary"
-						id="pcgd-page-search-btn">
-					<?php esc_html_e( 'Search', 'plugiva-clientguard' ); ?>
-				</button>
+			// Group protected items by their registered post type.
+			$protected_by_type = array();
+
+			foreach ( $protected as $post_id ) {
+
+				$post_type = get_post_type( $post_id );
+
+				if ( ! $post_type ) {
+					continue;
+				}
+
+				if ( ! isset( $protected_by_type[ $post_type ] ) ) {
+					$protected_by_type[ $post_type ] = array();
+				}
+
+				$protected_by_type[ $post_type ][] = $post_id;
+			}
+		?>
+
+		<!-- Content Protection interface — @since 1.8.0 -->
+		<div id="pcgd-content-protection" class="pcgd-content-protection-wrap">
+
+			<div class="pcgd-content-protection-header">
+				<p class="description">
+					<?php esc_html_e( 'Choose what clients can edit or remove.', 'plugiva-clientguard' ); ?>
+				</p>
 			</div>
 
-			<div id="pcgd-search-results" style="margin-bottom:15px;"></div>
+			<div class="pcgd-content-protection-card">
 
-			<strong><?php esc_html_e( 'Protected Pages', 'plugiva-clientguard' ); ?></strong>
+				<h4 class="pcgd-section-heading">
+					<?php esc_html_e( '1. Find content to protect', 'plugiva-clientguard' ); ?>
+				</h4>
 
-			<ul id="pcgd-protected-list">
-				<?php if ( empty( $protected ) ) : ?>
-					<li class="description">
-						<?php esc_html_e( 'No pages are currently protected.', 'plugiva-clientguard' ); ?>
-					</li>
-				<?php else : ?>
-					<?php foreach ( $protected as $post_id ) : ?>
-						<li data-id="<?php echo esc_attr( $post_id ); ?>">
-							<?php echo esc_html( get_the_title( $post_id ) ); ?>
-							<a href="<?php echo esc_url( get_permalink( $post_id ) ); ?>" target="_blank" class="pcgd-view">
-								<?php esc_html_e( 'View', 'plugiva-clientguard' ); ?>
-							</a>
-							<button type="button" class="button-link pcgd-remove">
-								<?php esc_html_e( 'Remove', 'plugiva-clientguard' ); ?>
-							</button>
-							<input type="hidden"
-								name="<?php echo esc_attr( self::OPTION_NAME . '[protected_content][]' ); ?>"
-								value="<?php echo esc_attr( $post_id ); ?>" />
+				<div class="pcgd-content-type-selector">
+
+					<p class="pcgd-content-type-label">
+						<?php esc_html_e( 'Select content type', 'plugiva-clientguard' ); ?>
+					</p>
+
+					<?php
+					$content_post_types = apply_filters(
+						'pcgd_protected_content_types_ui',
+						array( 'page', 'post', 'custom' )
+					);
+
+					$content_type_labels = array(
+						'page'   => __( 'Pages', 'plugiva-clientguard' ),
+						'post'   => __( 'Posts', 'plugiva-clientguard' ),
+						'custom' => __( 'Custom content', 'plugiva-clientguard' ),
+					);
+
+					$pro_content_types = array( 'post', 'custom' );
+
+					if ( is_array( $content_post_types ) && ! empty( $content_post_types ) ) :
+						?>
+						<ul class="pcgd-content-type-list">
+							<?php foreach ( $content_post_types as $content_type ) : ?>
+
+								<?php
+								if (
+									! is_string( $content_type )
+									|| ! isset( $content_type_labels[ $content_type ] )
+								) {
+									continue;
+								}
+
+								$is_selected = ( 'page' === $content_type );
+								$is_pro      = in_array( $content_type, $pro_content_types, true );
+								?>
+
+								<li class="pcgd-content-type-item">
+									<button
+										type="button"
+										class="pcgd-content-type-pill<?php echo $is_selected ? ' selected-pill' : ''; ?>"
+										data-content-type="<?php echo esc_attr( $content_type ); ?>"
+										aria-pressed="<?php echo $is_selected ? 'true' : 'false'; ?>"
+									>
+										<?php echo esc_html( $content_type_labels[ $content_type ] ); ?>
+
+										<?php if ( $is_pro ) : ?>
+											<span class="pcgd-pro-label">
+												<?php esc_html_e( 'Pro', 'plugiva-clientguard' ); ?>
+											</span>
+										<?php else : ?>
+											<span class="pcgd-free-label">
+												<?php esc_html_e( 'Free', 'plugiva-clientguard' ); ?>
+											</span>
+										<?php endif; ?>
+									</button>
+								</li>
+
+							<?php endforeach; ?>
+						</ul>
+					<?php endif; ?>
+
+				</div>
+
+				<div class="pcgd-content-search-box">
+
+					<label for="pcgd-content-search">
+						<?php esc_html_e( 'Search by title', 'plugiva-clientguard' ); ?>
+					</label>
+
+					<input
+						type="search"
+						id="pcgd-content-search"
+						class="regular-text"
+						placeholder="<?php esc_attr_e( 'Enter at least 3 characters…', 'plugiva-clientguard' ); ?>"
+						minlength="3"
+						autocomplete="off"
+					/>
+
+					<button
+						type="button"
+						class="button pcgd-content-search-button"
+					>
+						<?php esc_html_e( 'Search', 'plugiva-clientguard' ); ?>
+					</button>
+
+				</div>
+
+				<div class="pcgd-content-search-results" aria-live="polite" aria-relevant="additions text" hidden>
+					<p class="description pcgd-search-results-message"></p>
+
+					<div class="pcgd-search-results-toolbar" hidden>
+
+						<label class="pcgd-select-all">
+							<input
+								type="checkbox"
+								class="pcgd-select-all-checkbox"
+							/>
+							<span>
+								<?php esc_html_e( 'Select all shown', 'plugiva-clientguard' ); ?>
+							</span>
+						</label>
+
+						<button
+							type="button"
+							class="button button-primary pcgd-protect-selected"
+							disabled
+						>
+							<?php esc_html_e( 'Protect selected', 'plugiva-clientguard' ); ?>
+						</button>
+
+					</div>
+
+					<ul class="pcgd-search-results-list"></ul>
+
+					<p class="description pcgd-search-results-note">
+						<?php esc_html_e( 'Select the content you want to protect.', 'plugiva-clientguard' ); ?>
+					</p>
+
+					<template class="pcgd-search-result-template">
+						<li class="pcgd-search-result-item">
+
+							<label class="pcgd-search-result-select">
+								<input
+									type="checkbox"
+									class="pcgd-search-result-checkbox"
+								/>
+								<span class="pcgd-search-result-title"></span>
+							</label>
+
+							<span class="pcgd-publication-status"></span>
+
 						</li>
-					<?php endforeach; ?>
-				<?php endif; ?>
-			</ul>
+					</template>
 
-			<p class="description">
-				<?php esc_html_e( 'Selected pages are kept safe from editing or deletion.', 'plugiva-clientguard' ); ?>
-				<br />
-				<small><?php esc_html_e( 'Post safety is available in Plugiva ClientGuard Pro.', 'plugiva-clientguard' ); ?></small>
-			</p>
+				</div><!-- hidden templates search results -->
+
+			</div>
+
+			<div class="pcgd-content-protection-card pcgd-protected-list-wrap">
+
+				<h4 class="pcgd-section-heading">
+					<?php esc_html_e( '2. Protected content', 'plugiva-clientguard' ); ?>
+				</h4>
+
+				<div class="pcgd-protected-list-header">
+					<button type="button" class="button pcgd-remove-all">
+						<?php esc_html_e( 'Remove all', 'plugiva-clientguard' ); ?>
+					</button>
+				</div>
+
+				<p class="pcgd-protected-message" role="status" aria-live="polite" hidden></p>
+
+				<div class="pcgd-protected-list-container">
+
+					<ul class="pcgd-protected-list">
+
+						<?php if ( empty( $protected_by_type ) ) : ?>
+
+							<li class="pcgd-protected-empty description">
+								<?php esc_html_e( 'No content is currently protected.', 'plugiva-clientguard' ); ?>
+							</li>
+
+						<?php else : ?>
+
+							<?php foreach ( $protected_by_type as $post_type => $post_ids ) : ?>
+
+								<?php
+								$post_type_object = get_post_type_object( $post_type );
+
+								$type_label = $post_type_object
+									? $post_type_object->labels->name
+									: $post_type;
+								?>
+
+								<li class="pcgd-content-category"
+									data-post-type="<?php echo esc_attr( $post_type ); ?>"
+								>
+									<strong class="pcgd-content-category-title">
+										<?php echo esc_html( $type_label ); ?>
+									</strong>
+
+									<ul class="pcgd-protected-items">
+
+										<?php foreach ( $post_ids as $post_id ) : ?>
+
+											<li
+												class="pcgd-protected-item"
+												data-id="<?php echo esc_attr( $post_id ); ?>"
+											>
+												<span class="pcgd-protected-item-title">
+													<?php echo esc_html( get_the_title( $post_id ) ); ?>
+												</span>
+
+												<a
+													href="<?php echo esc_url( get_permalink( $post_id ) ); ?>"
+													target="_blank"
+													rel="noopener noreferrer"
+													class="pcgd-view"
+												>
+													<?php esc_html_e( 'View', 'plugiva-clientguard' ); ?>
+												</a>
+
+												<button
+													type="button"
+													class="button-link pcgd-remove"
+													data-id="<?php echo esc_attr( $post_id ); ?>"
+												>
+													<?php esc_html_e( 'Remove', 'plugiva-clientguard' ); ?>
+												</button>
+
+												<input
+													type="hidden"
+													name="<?php echo esc_attr( self::OPTION_NAME . '[protected_content][]' ); ?>"
+													value="<?php echo esc_attr( $post_id ); ?>"
+												/>
+											</li>
+
+										<?php endforeach; ?>
+
+									</ul>
+								</li>
+
+							<?php endforeach; ?>
+
+						<?php endif; ?>
+
+					</ul>
+
+				</div>
+
+				<p class="description">
+					<?php esc_html_e( 'Selected content is kept safe from editing or deletion.', 'plugiva-clientguard' ); ?>
+				</p>
+
+			</div>
 
 		</div>
+
 		<?php
 	}
 
@@ -479,13 +704,9 @@ class PCGD_Admin_Settings {
 		echo '</fieldset>';
 
 		printf(
-			'<p class="description">%s<br><small>%s</small></p>',
+			'<p class="description">%s</p>',
 			esc_html__(
 				'Hidden menus are removed to keep the admin simple and focused.',
-				'plugiva-clientguard'
-			),
-			esc_html__(
-				'More advanced menu controls are available in Plugiva ClientGuard Pro.',
 				'plugiva-clientguard'
 			)
 		);

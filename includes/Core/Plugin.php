@@ -34,6 +34,7 @@ class PCGD_Core_Plugin {
 		require_once PCGD_PLUGIN_PATH . 'includes/Core/Admin_Renderer.php'; // @since 1.1.0
 		require_once PCGD_PLUGIN_PATH . 'includes/Core/Settings_Events.php'; // @since 1.7.0
 		require_once PCGD_PLUGIN_PATH . 'includes/Core/Sentinel.php'; // @since 1.7.0
+		require_once PCGD_PLUGIN_PATH . 'includes/Core/Protected_Content_Types.php'; // @since 1.8.0
 
 		require_once PCGD_PLUGIN_PATH . 'includes/Admin/Settings.php';
 		require_once PCGD_PLUGIN_PATH . 'includes/Admin/Menu_Guard.php';
@@ -183,6 +184,60 @@ class PCGD_Core_Plugin {
 		$settings = get_option( 'pcgd_settings', array() );
 
 		return ! empty( $settings['client_mode'] );
+	}
+
+	/**
+	 * Determine whether Pro authorizes temporary relaxation of an
+	 * eligible ClientGuard policy module.
+	 *
+	 * Free retains responsibility for mandatory exceptions and
+	 * normal protection enforcement.
+	 *
+	 * @since 1.8.0
+	 *
+	 * @param string $module Canonical policy module identifier.
+	 * @return bool
+	 */
+	public static function is_protection_relaxed( $module ) {
+
+		$eligible_modules = array(
+			'pcgd_plugins',
+			'pcgd_themes',
+			'pcgd_appearance',
+			'pcgd_content',
+			'pcgd_settings',
+			'pcgd_admin_ui',
+		);
+
+		if (
+			! is_string( $module )
+			|| ! in_array( $module, $eligible_modules, true )
+		) {
+			return false;
+		}
+
+		// The hard lock always takes precedence.
+		if (
+			defined( 'PCGD_LOCK_CLIENT_MODE' )
+			&& PCGD_LOCK_CLIENT_MODE
+		) {
+			return false;
+		}
+
+		// Missing Pro integration must preserve Free protection.
+		if (
+			! class_exists( 'PCGD_Pro_Maintenance' )
+			|| ! is_callable(
+				array(
+					'PCGD_Pro_Maintenance',
+					'is_protection_relaxed',
+				)
+			)
+		) {
+			return false;
+		}
+
+		return true === PCGD_Pro_Maintenance::is_protection_relaxed( $module );
 	}
 
 	/**
