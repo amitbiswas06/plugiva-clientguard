@@ -44,12 +44,33 @@ class PCGD_Admin_Content_Guard {
      */
     private function is_content_explicitly_protected( $post_id ) {
 
+        /*
+        * Only protect content whose post type is currently authorized.
+        *
+        * @since 1.8.0
+        * Free's authoritative resolver determines eligibility.
+        * Additional types may become eligible through the dedicated
+        * Free–Pro integration, not through presentation-only filters.
+        */
+        $post = get_post( $post_id );
+
+        if (
+            ! $post
+            || ! in_array(
+                $post->post_type,
+                PCGD_Protected_Content_Types::get_supported_types(),
+                true
+            )
+        ) {
+            return false;
+        }
+
         $settings = get_option( self::OPTION_NAME );
 
         $protected = array();
 
         if ( ! empty( $settings['protected_content'] ) && is_array( $settings['protected_content'] ) ) {
-            $protected = $settings['protected_content'];
+            $protected = array_map( 'intval', $settings['protected_content'] );
         }
 
         // Client Mode automatically protects the front page.

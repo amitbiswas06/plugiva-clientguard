@@ -89,6 +89,10 @@ class PCGD_Admin_Ajax {
 				'post_type'  => $item->post_type,
 				'type_label' => esc_html( $type_label ),
 				'status'     => $item->post_status,
+				'protected_by_client_mode' => (
+					PCGD_Core_Plugin::is_client_mode()
+					&& absint( get_option( 'page_on_front' ) ) === (int) $item->ID
+				),
 			);
 		}
 

@@ -35,6 +35,7 @@ class PCGD_Core_Plugin {
 		require_once PCGD_PLUGIN_PATH . 'includes/Core/Settings_Events.php'; // @since 1.7.0
 		require_once PCGD_PLUGIN_PATH . 'includes/Core/Sentinel.php'; // @since 1.7.0
 		require_once PCGD_PLUGIN_PATH . 'includes/Core/Protected_Content_Types.php'; // @since 1.8.0
+		require_once PCGD_PLUGIN_PATH . 'includes/Admin/Settings_Renderer.php'; // @since 1.8.0
 
 		require_once PCGD_PLUGIN_PATH . 'includes/Admin/Settings.php';
 		require_once PCGD_PLUGIN_PATH . 'includes/Admin/Menu_Guard.php';

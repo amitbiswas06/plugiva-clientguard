@@ -152,6 +152,13 @@
 			checkbox.value 			= String(id);
 			title.textContent 		= String(item.title || '');
 
+			if (item.protected_by_client_mode === true) {
+				const clientModeLabel = document.createElement('span');
+				clientModeLabel.className = 'pcgd-client-mode-label';
+				clientModeLabel.textContent = 'Automatically protected by Client Mode';
+				title.after(clientModeLabel);
+			}
+
 			// Post status
 			const statusLabels = {
 				publish: 'Published',

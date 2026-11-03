@@ -14,28 +14,109 @@ defined( 'ABSPATH' ) || exit;
 final class PCGD_Protected_Content_Types {
 
 	/**
-	 * Get all supported content types.
+	 * Additional content types requested through the Free–Pro bridge.
 	 *
-	 * Pages remain supported by default. Extensions may add
-	 * additional eligible post types through the filter.
+	 * These types are requests only. The authoritative resolver must
+	 * validate them before considering them supported.
+	 *
+	 * @var string[]
+	 */
+	private static $pro_requested_types = array();
+
+	/**
+	 * Whether the Free–Pro content-type integration is active.
+	 *
+	 * This is runtime-only state. It is not persisted between requests.
+	 *
+	 * @var bool
+	 */
+	private static $pro_integration_active = false;
+
+	/**
+	 * Initialize the Free–Pro content-type integration.
+	 *
+	 * Activates the integration for the current request and registers
+	 * the requested content types.
+	 *
+	 * Invalid top-level input leaves the integration inactive.
+	 * Individual content types are validated by register_pro_types().
+	 *
+	 * @param array $post_types Content types requested by Pro.
+	 * @return bool Whether the integration was initialized.
+	 */
+	public static function initialize_pro_integration( $post_types ) {
+		if ( ! is_array( $post_types ) ) {
+			return false;
+		}
+
+		self::$pro_integration_active = true;
+
+		self::register_pro_types( $post_types );
+
+		return true;
+	}
+
+	/**
+	 * Register content types requested by Pro.
+	 *
+	 * This method only accepts registrations after the integration
+	 * has been initialized.
+	 *
+	 * @param array $post_types Content types requested by Pro.
+	 * @return void
+	 */
+	public static function register_pro_types( $post_types ) {
+		if ( ! self::$pro_integration_active ) {
+			return;
+		}
+
+		if ( ! is_array( $post_types ) ) {
+			return;
+		}
+
+		foreach ( $post_types as $post_type ) {
+			if (
+				! is_string( $post_type )
+				|| '' === $post_type
+				|| sanitize_key( $post_type ) !== $post_type
+			) {
+				continue;
+			}
+
+			// Do not automatically accept all registered types.
+			if ( 'post' !== $post_type ) {
+				continue;
+			}
+
+			self::$pro_requested_types[] = $post_type;
+		}
+
+		self::$pro_requested_types = array_values(
+			array_unique( self::$pro_requested_types )
+		);
+	}
+
+	/**
+	 * Get all supported content types.
 	 *
 	 * @return string[] Supported post type identifiers.
 	 */
 	public static function get_supported_types() {
 
-		$types = apply_filters(
-			'pcgd_protected_content_types',
-			array( 'page' )
-		);
-
-		if ( ! is_array( $types ) ) {
-			$types = array();
-		}
-
 		/*
-		 * Preserve the Free plugin's baseline support for Pages.
-		 */
-		$types[] = 'page';
+		* Free supports Pages only.
+		*
+		* Additional content types must be authorized through the
+		* dedicated Free–Pro integration bridge.
+		*/
+		$types = array( 'page' );
+
+		if ( self::$pro_integration_active ) {
+			$types = array_merge(
+				$types,
+				self::$pro_requested_types
+			);
+		}
 
 		$supported = array();
 

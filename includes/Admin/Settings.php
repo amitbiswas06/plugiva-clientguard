@@ -15,6 +15,21 @@ class PCGD_Admin_Settings {
 	const OPTION_NAME = 'pcgd_settings';
 
 	/**
+	 * Settings interface renderer.
+	 *
+	 * @since 1.8.0
+	 * @var PCGD_Admin_Settings_Renderer
+	 */
+	private $renderer;
+
+	/**
+	 * Initialize the settings interface renderer.
+	 */
+	public function __construct() {
+		$this->renderer = new PCGD_Admin_Settings_Renderer();
+	}
+
+	/**
 	 * Register the settings page.
 	 */
 	public function register_menu() {
@@ -24,7 +39,7 @@ class PCGD_Admin_Settings {
 			esc_html__( 'ClientGuard', 'plugiva-clientguard' ),
 			'manage_options',
 			'plugiva-clientguard',
-			array( $this, 'render_page' )
+			array( $this->renderer, 'render_page' )
 		);
 	}
 
@@ -49,7 +64,7 @@ class PCGD_Admin_Settings {
 		add_settings_section(
 			'pcgd_section_client_mode',
 			esc_html__( 'Client Mode', 'plugiva-clientguard' ),
-			array( $this, 'render_client_mode_intro' ),
+			array( $this->renderer, 'render_client_mode_intro' ),
 			'plugiva-clientguard'
 		);
 
@@ -79,7 +94,7 @@ class PCGD_Admin_Settings {
 		add_settings_field(
 			'client_mode',
 			esc_html__( 'Enable Client Mode', 'plugiva-clientguard' ),
-			array( $this, 'render_checkbox' ),
+			array( $this->renderer, 'render_checkbox' ),
 			'plugiva-clientguard',
 			'pcgd_section_client_mode',
 			array(
@@ -91,7 +106,7 @@ class PCGD_Admin_Settings {
 		add_settings_field(
 			'lock_theme_switch',
 			esc_html__('Lock Theme Switching', 'plugiva-clientguard'),
-			array($this, 'render_checkbox'),
+			array($this->renderer, 'render_checkbox'),
 			'plugiva-clientguard',
 			'pcgd_section_general',
 			array(
@@ -104,7 +119,7 @@ class PCGD_Admin_Settings {
 		add_settings_field(
 			'lock_appearance_management',
 			esc_html__( 'Lock Appearance Management', 'plugiva-clientguard' ),
-			array( $this, 'render_checkbox' ),
+			array( $this->renderer, 'render_checkbox' ),
 			'plugiva-clientguard',
 			'pcgd_section_general',
 			array(
@@ -119,7 +134,7 @@ class PCGD_Admin_Settings {
 		add_settings_field(
 			'lock_plugin_install',
 			esc_html__('Lock Plugin Installation', 'plugiva-clientguard'),
-			array($this, 'render_checkbox'),
+			array($this->renderer, 'render_checkbox'),
 			'plugiva-clientguard',
 			'pcgd_section_general',
 			array(
@@ -131,7 +146,7 @@ class PCGD_Admin_Settings {
 		add_settings_field(
 			'allow_plugin_toggle',
 			esc_html__('Allow Plugin Activation', 'plugiva-clientguard'),
-			array($this, 'render_checkbox'),
+			array($this->renderer, 'render_checkbox'),
 			'plugiva-clientguard',
 			'pcgd_section_general',
 			array(
@@ -145,7 +160,7 @@ class PCGD_Admin_Settings {
 		add_settings_field(
 			'protect_site_urls',
 			esc_html__( 'Protect Site URLs', 'plugiva-clientguard' ),
-			array( $this, 'render_checkbox' ),
+			array( $this->renderer, 'render_checkbox' ),
 			'plugiva-clientguard',
 			'pcgd_section_general',
 			array(
@@ -157,7 +172,7 @@ class PCGD_Admin_Settings {
 		add_settings_field(
 			'protected_content',
 			esc_html__( 'Protection Rules', 'plugiva-clientguard' ),
-			array( $this, 'render_protected_content' ),
+			array( $this->renderer, 'render_protected_content' ),
 			'plugiva-clientguard',
 			'pcgd_section_content'
 		);
@@ -165,25 +180,12 @@ class PCGD_Admin_Settings {
 		add_settings_field(
 			'hide_menus',
 			esc_html__( 'Hide Admin Menus', 'plugiva-clientguard' ),
-			array( $this, 'render_menu_hiding' ),
+			array( $this->renderer, 'render_menu_hiding' ),
 			'plugiva-clientguard',
 			'pcgd_section_menu'
 		);
 
 
-	}
-
-	/**
-	 * Client mode intro function
-	 *
-	 * @return void
-	 * @since 1.1.0
-	 */
-	public function render_client_mode_intro() {
-		echo '<p>' . esc_html__(
-			'Client Mode applies safe defaults to simplify the admin and help prevent unintended changes.',
-			'plugiva-clientguard'
-		) . '</p>';
 	}
 
 	/**
@@ -250,7 +252,14 @@ class PCGD_Admin_Settings {
 			$output['protected_content'] = $clean;
 
 		} else {
-			$output['protected_content'] = array();
+			// Preserve existing protected content when this form does not submit it.
+			// @since 1.8.0
+			$existing_settings = get_option( self::OPTION_NAME, array() );
+
+			$output['protected_content'] = isset( $existing_settings['protected_content'] )
+				&& is_array( $existing_settings['protected_content'] )
+					? $existing_settings['protected_content']
+					: array();
 		}
 
 		// Sanitize hidden menus.
@@ -315,573 +324,6 @@ class PCGD_Admin_Settings {
 
 		return $settings;
 	}
-
-	/**
-	 * Render a ClientGuard checkbox field.
-	 *
-	 * Used by registered settings fields to render a checkbox
-	 * based on the field key and label provided in $args.
-	 *
-	 * @since 1.0.0
-	 *
-	 * @param array $args Checkbox field arguments.
-	 * @return void
-	 */
-	public function render_checkbox( $args ) {
-
-		$settings = get_option( self::OPTION_NAME, array() );
-		$key      = $args['key'];
-		$label    = $args['label'];
-
-		// Get effective state considering Client Mode and dependencies.
-		// @since 1.3.0 - moved logic to separate class for better organization and future extensibility.
-		$state 		= PCGD_Admin_Settings_State::get( $key, $settings );
-		$value    	= $state['value'];
-		$disabled 	= $state['disabled'];
-		$note     	= $state['note'];
-
-		?>
-		<label>
-			<input type="checkbox"
-				name="<?php echo esc_attr( self::OPTION_NAME . '[' . $key . ']' ); ?>"
-				value="1"
-				<?php checked( $value ); ?>
-				<?php disabled( $disabled ); ?> />
-			<?php echo wp_kses( $label, array( 'strong' => array(), 'em' => array() ) ); ?>
-		</label>
-
-		<?php if ( $note ) : ?>
-			<p class="description"><small><?php echo esc_html( $note ); ?></small></p>
-		<?php endif; ?>
-		<?php
-	}
-
-	public function render_protected_content() {
-
-		$settings  = get_option( self::OPTION_NAME );
-		$protected = ! empty( $settings['protected_content'] )
-			? array_map( 'absint', (array) $settings['protected_content'] )
-			: array();
-
-			// Remove stale / deleted posts.
-			$protected = array_filter(
-				$protected,
-				function ( $post_id ) {
-					return get_post( $post_id );
-				}
-			);
-
-			// Group protected items by their registered post type.
-			$protected_by_type = array();
-
-			foreach ( $protected as $post_id ) {
-
-				$post_type = get_post_type( $post_id );
-
-				if ( ! $post_type ) {
-					continue;
-				}
-
-				if ( ! isset( $protected_by_type[ $post_type ] ) ) {
-					$protected_by_type[ $post_type ] = array();
-				}
-
-				$protected_by_type[ $post_type ][] = $post_id;
-			}
-		?>
-
-		<!-- Content Protection interface — @since 1.8.0 -->
-		<div id="pcgd-content-protection" class="pcgd-content-protection-wrap">
-
-			<div class="pcgd-content-protection-header">
-				<p class="description">
-					<?php esc_html_e( 'Choose what clients can edit or remove.', 'plugiva-clientguard' ); ?>
-				</p>
-			</div>
-
-			<div class="pcgd-content-protection-card">
-
-				<h4 class="pcgd-section-heading">
-					<?php esc_html_e( '1. Find content to protect', 'plugiva-clientguard' ); ?>
-				</h4>
-
-				<div class="pcgd-content-type-selector">
-
-					<p class="pcgd-content-type-label">
-						<?php esc_html_e( 'Select content type', 'plugiva-clientguard' ); ?>
-					</p>
-
-					<?php
-					$content_post_types = apply_filters(
-						'pcgd_protected_content_types_ui',
-						array( 'page', 'post', 'custom' )
-					);
-
-					$content_type_labels = array(
-						'page'   => __( 'Pages', 'plugiva-clientguard' ),
-						'post'   => __( 'Posts', 'plugiva-clientguard' ),
-						'custom' => __( 'Custom content', 'plugiva-clientguard' ),
-					);
-
-					$pro_content_types = array( 'post', 'custom' );
-
-					if ( is_array( $content_post_types ) && ! empty( $content_post_types ) ) :
-						?>
-						<ul class="pcgd-content-type-list">
-							<?php foreach ( $content_post_types as $content_type ) : ?>
-
-								<?php
-								if (
-									! is_string( $content_type )
-									|| ! isset( $content_type_labels[ $content_type ] )
-								) {
-									continue;
-								}
-
-								$is_selected = ( 'page' === $content_type );
-								$is_pro      = in_array( $content_type, $pro_content_types, true );
-								?>
-
-								<li class="pcgd-content-type-item">
-									<button
-										type="button"
-										class="pcgd-content-type-pill<?php echo $is_selected ? ' selected-pill' : ''; ?>"
-										data-content-type="<?php echo esc_attr( $content_type ); ?>"
-										aria-pressed="<?php echo $is_selected ? 'true' : 'false'; ?>"
-									>
-										<?php echo esc_html( $content_type_labels[ $content_type ] ); ?>
-
-										<?php if ( $is_pro ) : ?>
-											<span class="pcgd-pro-label">
-												<?php esc_html_e( 'Pro', 'plugiva-clientguard' ); ?>
-											</span>
-										<?php else : ?>
-											<span class="pcgd-free-label">
-												<?php esc_html_e( 'Free', 'plugiva-clientguard' ); ?>
-											</span>
-										<?php endif; ?>
-									</button>
-								</li>
-
-							<?php endforeach; ?>
-						</ul>
-					<?php endif; ?>
-
-				</div>
-
-				<div class="pcgd-content-search-box">
-
-					<label for="pcgd-content-search">
-						<?php esc_html_e( 'Search by title', 'plugiva-clientguard' ); ?>
-					</label>
-
-					<input
-						type="search"
-						id="pcgd-content-search"
-						class="regular-text"
-						placeholder="<?php esc_attr_e( 'Enter at least 3 characters…', 'plugiva-clientguard' ); ?>"
-						minlength="3"
-						autocomplete="off"
-					/>
-
-					<button
-						type="button"
-						class="button pcgd-content-search-button"
-					>
-						<?php esc_html_e( 'Search', 'plugiva-clientguard' ); ?>
-					</button>
-
-				</div>
-
-				<div class="pcgd-content-search-results" aria-live="polite" aria-relevant="additions text" hidden>
-					<p class="description pcgd-search-results-message"></p>
-
-					<div class="pcgd-search-results-toolbar" hidden>
-
-						<label class="pcgd-select-all">
-							<input
-								type="checkbox"
-								class="pcgd-select-all-checkbox"
-							/>
-							<span>
-								<?php esc_html_e( 'Select all shown', 'plugiva-clientguard' ); ?>
-							</span>
-						</label>
-
-						<button
-							type="button"
-							class="button button-primary pcgd-protect-selected"
-							disabled
-						>
-							<?php esc_html_e( 'Protect selected', 'plugiva-clientguard' ); ?>
-						</button>
-
-					</div>
-
-					<ul class="pcgd-search-results-list"></ul>
-
-					<p class="description pcgd-search-results-note">
-						<?php esc_html_e( 'Select the content you want to protect.', 'plugiva-clientguard' ); ?>
-					</p>
-
-					<template class="pcgd-search-result-template">
-						<li class="pcgd-search-result-item">
-
-							<label class="pcgd-search-result-select">
-								<input
-									type="checkbox"
-									class="pcgd-search-result-checkbox"
-								/>
-								<span class="pcgd-search-result-title"></span>
-							</label>
-
-							<span class="pcgd-publication-status"></span>
-
-						</li>
-					</template>
-
-				</div><!-- hidden templates search results -->
-
-			</div>
-
-			<div class="pcgd-content-protection-card pcgd-protected-list-wrap">
-
-				<h4 class="pcgd-section-heading">
-					<?php esc_html_e( '2. Protected content', 'plugiva-clientguard' ); ?>
-				</h4>
-
-				<div class="pcgd-protected-list-header">
-					<button type="button" class="button pcgd-remove-all">
-						<?php esc_html_e( 'Remove all', 'plugiva-clientguard' ); ?>
-					</button>
-				</div>
-
-				<p class="pcgd-protected-message" role="status" aria-live="polite" hidden></p>
-
-				<div class="pcgd-protected-list-container">
-
-					<ul class="pcgd-protected-list">
-
-						<?php if ( empty( $protected_by_type ) ) : ?>
-
-							<li class="pcgd-protected-empty description">
-								<?php esc_html_e( 'No content is currently protected.', 'plugiva-clientguard' ); ?>
-							</li>
-
-						<?php else : ?>
-
-							<?php foreach ( $protected_by_type as $post_type => $post_ids ) : ?>
-
-								<?php
-								$post_type_object = get_post_type_object( $post_type );
-
-								$type_label = $post_type_object
-									? $post_type_object->labels->name
-									: $post_type;
-								?>
-
-								<li class="pcgd-content-category"
-									data-post-type="<?php echo esc_attr( $post_type ); ?>"
-								>
-									<strong class="pcgd-content-category-title">
-										<?php echo esc_html( $type_label ); ?>
-									</strong>
-
-									<ul class="pcgd-protected-items">
-
-										<?php foreach ( $post_ids as $post_id ) : ?>
-
-											<li
-												class="pcgd-protected-item"
-												data-id="<?php echo esc_attr( $post_id ); ?>"
-											>
-												<span class="pcgd-protected-item-title">
-													<?php echo esc_html( get_the_title( $post_id ) ); ?>
-												</span>
-
-												<a
-													href="<?php echo esc_url( get_permalink( $post_id ) ); ?>"
-													target="_blank"
-													rel="noopener noreferrer"
-													class="pcgd-view"
-												>
-													<?php esc_html_e( 'View', 'plugiva-clientguard' ); ?>
-												</a>
-
-												<button
-													type="button"
-													class="button-link pcgd-remove"
-													data-id="<?php echo esc_attr( $post_id ); ?>"
-												>
-													<?php esc_html_e( 'Remove', 'plugiva-clientguard' ); ?>
-												</button>
-
-												<input
-													type="hidden"
-													name="<?php echo esc_attr( self::OPTION_NAME . '[protected_content][]' ); ?>"
-													value="<?php echo esc_attr( $post_id ); ?>"
-												/>
-											</li>
-
-										<?php endforeach; ?>
-
-									</ul>
-								</li>
-
-							<?php endforeach; ?>
-
-						<?php endif; ?>
-
-					</ul>
-
-				</div>
-
-				<p class="description">
-					<?php esc_html_e( 'Selected content is kept safe from editing or deletion.', 'plugiva-clientguard' ); ?>
-				</p>
-
-			</div>
-
-		</div>
-
-		<?php
-	}
-
-	public function render_menu_hiding() {
-
-		$acf_active = function_exists( 'acf' ); // Check if ACF is active for potential future integration notes.
-
-		$settings 	= get_option( self::OPTION_NAME, array() );
-
-		$menus = array(
-			'plugins.php'          => __( 'Plugins', 'plugiva-clientguard' ),
-			'themes.php'           => __( 'Appearance', 'plugiva-clientguard' ),
-			'upload.php'           => __( 'Media', 'plugiva-clientguard' ),
-			'users.php'            => __( 'Users', 'plugiva-clientguard' ),
-			'tools.php'            => __( 'Tools', 'plugiva-clientguard' ),
-			'edit-comments.php'    => __( 'Comments', 'plugiva-clientguard' ),
-		);
-
-		// Add ACF only if active, @since 1.1.0
-		if ( $acf_active ) {
-			$menus['acf'] = __( 'ACF (Custom Fields)', 'plugiva-clientguard' );
-		}
-
-		echo '<fieldset>';
-
-		foreach ( $menus as $slug => $label ) {
-
-			// Get effective state considering Client Mode and dependencies.
-			// @since 1.3.0 - moved logic to separate class for better organization and future extensibility.
-			$state 			= PCGD_Admin_Settings_State::get_menu_state( $slug, $settings );
-			$display_label 	= $label;
-
-			if ( ! empty( $state['note'] ) ) {
-				$display_label .= ' <small style="color:#666;">[' . esc_html( $state['note'] ) . ']</small>';
-			}
-
-			printf(
-				'<label style="display:block;margin-bottom:4px;">
-					<input type="checkbox"
-						name="%1$s[]"
-						value="%2$s"
-						%3$s
-						%4$s />
-					%5$s
-				</label>',
-				esc_attr( self::OPTION_NAME . '[hide_menus]' ),
-				esc_attr( $slug ),
-				checked( $state['checked'], true, false ),
-				disabled( $state['disabled'], true, false ),
-				wp_kses( $display_label, array(
-					'small' => array(
-						'style' => array(),
-					),
-				) )
-			);
-		}
-
-		echo '</fieldset>';
-
-		printf(
-			'<p class="description">%s</p>',
-			esc_html__(
-				'Hidden menus are removed to keep the admin simple and focused.',
-				'plugiva-clientguard'
-			)
-		);
-
-	}
-
-
-	/**
-	 * Render settings page.
-	 *
-	 * @since 1.0.0 | updated on 1.7.0
-	 */
-	public function render_page() {
-
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Tab is read-only navigation input; no state-changing operation is performed.
-		$tab = isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : 'general';
-
-		$allowed_tabs = array( 'general', 'sentinel' );
-
-		if ( ! in_array( $tab, $allowed_tabs, true ) ) {
-			$tab = 'general';
-		}
-		?>
-		<div class="wrap">
-
-			<h1><?php echo esc_html__( 'Plugiva ClientGuard', 'plugiva-clientguard' ); ?></h1>
-
-			<nav class="nav-tab-wrapper">
-				<a
-					href="<?php echo esc_url( admin_url( 'options-general.php?page=plugiva-clientguard&tab=general' ) ); ?>"
-					class="nav-tab <?php echo 'general' === $tab ? 'nav-tab-active' : ''; ?>"
-				>
-					<?php esc_html_e( 'General', 'plugiva-clientguard' ); ?>
-				</a>
-
-				<a
-					href="<?php echo esc_url( admin_url( 'options-general.php?page=plugiva-clientguard&tab=sentinel' ) ); ?>"
-					class="nav-tab <?php echo 'sentinel' === $tab ? 'nav-tab-active' : ''; ?>"
-				>
-					<?php esc_html_e( 'Sentinel', 'plugiva-clientguard' ); ?>
-				</a>
-			</nav>
-
-			<?php
-			if ( 'sentinel' === $tab ) :
-				$this->render_sentinel_tab();
-
-			else:
-			?>
-			
-			<form method="post" action="options.php">
-				<?php
-				settings_fields( 'pcgd_settings_group' );
-
-				// Client Mode (highlighted).
-				echo '<div class="pcgd-client-mode-box">';
-				PCGD_Core_Admin_Renderer::render_section(
-					'plugiva-clientguard',
-					'pcgd_section_client_mode'
-				);
-				echo '</div>';
-
-				// Other sections.
-				echo '<div class="pcgd-general-box">';
-				PCGD_Core_Admin_Renderer::render_section(
-					'plugiva-clientguard',
-					'pcgd_section_general'
-				);
-				PCGD_Core_Admin_Renderer::render_section(
-					'plugiva-clientguard',
-					'pcgd_section_content'
-				);
-				PCGD_Core_Admin_Renderer::render_section(
-					'plugiva-clientguard',
-					'pcgd_section_menu'
-				);
-				echo '</div>';
-
-				submit_button();
-				?>
-			</form>
-			<?php endif; ?>
-
-		</div>
-		<?php
-	}
-
-	/**
-	 * Render Sentinel tab.
-	 *
-	 * Sentinel provides a site-scoped operational history of
-	 * ClientGuard events recorded for the current site.
-	 *
-	 * @since 1.7.0
-	 *
-	 * @return void
-	 */
-    private function render_sentinel_tab() {
-
-        $table = new PCGD_Admin_Sentinel_Table();
-
-        $table->prepare_items();
-        ?>
-        <div class="pcgd-sentinel-box">
-
-            <h2><?php esc_html_e( 'Sentinel', 'plugiva-clientguard' ); ?></h2>
-
-            <p>
-                <?php esc_html_e(
-                    'Sentinel records important ClientGuard configuration and operational events for this site.',
-                    'plugiva-clientguard'
-                ); ?>
-            </p>
-
-			<!-- LOG ACTIONS START -->
-			<div class="pcgd-sentinel-actions">
-
-				<form method="post" class="pcgd-sentinel-export" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
-					<?php wp_nonce_field( 'pcgd_export_sentinel_human', 'pcgd_sentinel_nonce' ); ?>
-
-					<input type="hidden" name="action" value="pcgd_export_sentinel_human">
-
-					<?php
-					submit_button(
-						esc_html__( 'Export Human-Readable CSV', 'plugiva-clientguard' ),
-						'secondary',
-						'submit',
-						false
-					);
-					?>
-				</form>
-
-				<form method="post" class="pcgd-sentinel-export" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
-					<?php wp_nonce_field( 'pcgd_export_sentinel_raw', 'pcgd_sentinel_nonce' ); ?>
-
-					<input type="hidden" name="action" value="pcgd_export_sentinel_raw">
-
-					<?php
-					submit_button(
-						esc_html__( 'Export Raw CSV', 'plugiva-clientguard' ),
-						'secondary',
-						'submit',
-						false
-					);
-					?>
-				</form>
-
-				<form method="post" class="pcgd-sentinel-clear-logs" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
-					<?php wp_nonce_field( 'pcgd_clear_sentinel_logs', 'pcgd_sentinel_nonce' ); ?>
-
-					<input type="hidden" name="action" value="pcgd_clear_sentinel_logs">
-
-					<?php
-					submit_button(
-						esc_html__( 'Clear All Logs', 'plugiva-clientguard' ),
-						'secondary',
-						'submit',
-						false,
-						array(
-							'onclick' => 'return confirm("' . esc_js(
-								esc_html__( 'Are you sure you want to clear all Sentinel logs for this site? This action cannot be undone.', 'plugiva-clientguard' )
-							) . '");',
-						)
-					);
-					?>
-				</form>
-
-			</div>
-			<!-- LOG ACTIONS END -->
-
-            <?php $table->display(); ?>
-
-        </div>
-        <?php
-    }
 
 	/**
 	 * Handle Sentinel actions.
