@@ -36,6 +36,76 @@ define( 'PCGD_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
 define( 'PCGD_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 
 /**
+ * Record a deactivation event for Pro to process.
+ *
+ * The event is stored per site so Pro can invalidate its own
+ * maintenance state even if it is not loaded during deactivation.
+ *
+ * @since 1.8.0
+ * @param bool $network_wide Whether the plugin is being deactivated network-wide.
+ */
+function pcgd_record_pro_deactivation_event( $network_wide = false ) {
+
+	$record_event = static function () {
+
+		update_option(
+			'pcgd_free_deactivation_event',
+			array(
+				'event_id'       => wp_generate_uuid4(),
+				'deactivated_at' => time(),
+			),
+			false
+		);
+	};
+
+	// Single-site or individual site deactivation.
+	if ( ! is_multisite() || ! $network_wide ) {
+		$record_event();
+		return;
+	}
+
+	$plugin_basename = plugin_basename( PCGD_PLUGIN_FILE );
+	$offset          = 0;
+	$batch_size      = 200;
+
+	do {
+
+		$site_ids = get_sites(
+			array(
+				'fields' => 'ids',
+				'number' => $batch_size,
+				'offset' => $offset,
+			)
+		);
+
+		foreach ( $site_ids as $site_id ) {
+
+			switch_to_blog( (int) $site_id );
+
+			$active_plugins = get_option( 'active_plugins', array() );
+
+			// Preserve sites where Free remains independently active.
+			if (
+				! is_array( $active_plugins )
+				|| ! in_array( $plugin_basename, $active_plugins, true )
+			) {
+				$record_event();
+			}
+
+			restore_current_blog();
+		}
+
+		$offset += count( $site_ids );
+
+	} while ( count( $site_ids ) === $batch_size );
+}
+
+register_deactivation_hook(
+	__FILE__,
+	'pcgd_record_pro_deactivation_event'
+);
+
+/**
  * Boot the plugin.
  */
 require_once PCGD_PLUGIN_PATH . 'includes/Core/Plugin.php';
