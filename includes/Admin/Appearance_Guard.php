@@ -112,6 +112,12 @@ class PCGD_Admin_Appearance_Guard {
 			return $allcaps;
 		}
 
+		// Temporarily allow Appearance management during a valid maintenance window.
+		// @since 1.8.0
+		if ( PCGD_Core_Plugin::is_protection_relaxed( 'pcgd_appearance' ) ) {
+			return $allcaps;
+		}
+
 		if ( isset( $allcaps['edit_theme_options'] ) ) {
 			$allcaps['edit_theme_options'] = false;
 		}
@@ -161,6 +167,16 @@ class PCGD_Admin_Appearance_Guard {
 			return $value;
 		}
 
+		// Allow sidebar widget updates during a valid maintenance window.
+		// @since 1.8.0
+		if ( PCGD_Core_Plugin::is_protection_relaxed( 'pcgd_appearance' ) ) {
+
+			// Notify ClientGuard Sentinel that the sidebar widget update was authorized during maintenance.
+			do_action( 'pcgd_maintenance_authorized', 'appearance_guard', 'update', $option );
+
+			return $value;
+		}
+
 		// Notify ClientGuard Sentinel that a protected sidebar widget update was blocked.
 		// @since 1.7.0
 		do_action( 'pcgd_protection_blocked', 'appearance_guard', 'update', $option );
@@ -201,6 +217,16 @@ class PCGD_Admin_Appearance_Guard {
 			return;
 		}
 
+		// Allow sidebar widget deletion during a valid maintenance window.
+		// @since 1.8.0
+		if ( PCGD_Core_Plugin::is_protection_relaxed( 'pcgd_appearance' ) ) {
+
+			// Notify ClientGuard Sentinel that the sidebar widget deletion was authorized during maintenance.
+			do_action( 'pcgd_maintenance_authorized', 'appearance_guard', 'delete', $option );
+
+			return;
+		}
+
 		// Notify ClientGuard Sentinel that a protected sidebar widget deletion was blocked.
 		// @since 1.7.0
 		do_action( 'pcgd_protection_blocked', 'appearance_guard', 'delete', $option );
@@ -232,6 +258,16 @@ class PCGD_Admin_Appearance_Guard {
 				// @since 1.7.0
 				do_action( 'pcgd_protection_bypassed', 'appearance_guard', 'update', $option );
 			}
+
+			return $value;
+		}
+
+		// Allow block widget updates during a valid maintenance window.
+		// @since 1.8.0
+		if ( PCGD_Core_Plugin::is_protection_relaxed( 'pcgd_appearance' ) ) {
+
+			// Notify ClientGuard Sentinel that the block widget update was authorized during maintenance.
+			do_action( 'pcgd_maintenance_authorized', 'appearance_guard', 'update', $option );
 
 			return $value;
 		}
@@ -272,6 +308,16 @@ class PCGD_Admin_Appearance_Guard {
 				// @since 1.7.0
 				do_action( 'pcgd_protection_bypassed', 'appearance_guard', 'delete', $option );
 			}
+
+			return;
+		}
+
+		// Allow block widget deletion during a valid maintenance window.
+		// @since 1.8.0
+		if ( PCGD_Core_Plugin::is_protection_relaxed( 'pcgd_appearance' ) ) {
+
+			// Notify ClientGuard Sentinel that the block widget deletion was authorized during maintenance.
+			do_action( 'pcgd_maintenance_authorized', 'appearance_guard', 'delete', $option );
 
 			return;
 		}
@@ -360,6 +406,16 @@ class PCGD_Admin_Appearance_Guard {
 			return $value;
 		}
 
+		// Allow Site Identity updates during a valid maintenance window.
+		// @since 1.8.0
+		if ( PCGD_Core_Plugin::is_protection_relaxed( 'pcgd_appearance' ) ) {
+
+			// Notify ClientGuard Sentinel that the Site Identity update was authorized during maintenance.
+			do_action( 'pcgd_maintenance_authorized', 'appearance_guard', 'update', $option );
+
+			return $value;
+		}
+
 		// Notify ClientGuard Sentinel that a protected Site Identity update was blocked.
 		// @since 1.7.0
 		do_action( 'pcgd_protection_blocked', 'appearance_guard', 'update', $option );
@@ -406,6 +462,16 @@ class PCGD_Admin_Appearance_Guard {
 			return;
 		}
 
+		// Allow Site Identity option deletion during a valid maintenance window.
+		// @since 1.8.0
+		if ( PCGD_Core_Plugin::is_protection_relaxed( 'pcgd_appearance' ) ) {
+
+			// Notify ClientGuard Sentinel that the Site Identity option deletion was authorized during maintenance.
+			do_action( 'pcgd_maintenance_authorized', 'appearance_guard', 'delete', $option );
+
+			return;
+		}
+
 		// Notify ClientGuard Sentinel that a protected Site Identity deletion was blocked.
 		// @since 1.7.0
 		do_action( 'pcgd_protection_blocked', 'appearance_guard', 'delete', $option );
@@ -421,8 +487,12 @@ class PCGD_Admin_Appearance_Guard {
 	 */
 	public function hide_site_identity_fields_css() {
 
-		// Only when protection is active.
-		if ( ! $this->is_appearance_protection_active() ) {
+		// Hide fields only when Appearance protection is active
+		// and maintenance has not temporarily relaxed it.
+		if (
+			! $this->is_appearance_protection_active()
+			|| PCGD_Core_Plugin::is_protection_relaxed( 'pcgd_appearance' )
+		) {
 			return;
 		}
 
