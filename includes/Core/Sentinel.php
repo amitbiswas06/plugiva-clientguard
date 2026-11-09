@@ -48,6 +48,8 @@ class PCGD_Core_Sentinel {
 
         $loader->add_action( 'pcgd_protection_violation', $this, 'record_operational_event', 10, 3 );
 
+        $loader->add_action( 'pcgd_maintenance_authorized', $this, 'record_operational_event', 10, 3 ); // @since 1.8.0
+
         $loader->add_action( 'pcgd_protection_state_changed', $this, 'record_config_event', 10, 4 );
 
         $loader->add_action( 'pcgd_client_mode_changed', $this, 'record_config_event', 10, 4 );
@@ -161,6 +163,7 @@ class PCGD_Core_Sentinel {
             'pcgd_protection_blocked',
             'pcgd_protection_bypassed',
             'pcgd_protection_violation',
+            'pcgd_maintenance_authorized',
         );
 
         if ( in_array( $hook, $operational_hooks, true ) ) {
@@ -389,6 +392,30 @@ class PCGD_Core_Sentinel {
                     $text = sprintf(
                         /* translators: 1: guard name, 2: event name, 3: target. */
                         __( '%1$s protection bypassed %2$s %3$s.', 'plugiva-clientguard' ),
+                        $guard_name,
+                        $event,
+                        $target
+                    );
+                }
+                break;
+
+            case 'pcgd_maintenance_authorized':
+                if ( '' === $guard_name ) {
+                    return;
+                }
+
+                if ( 'content_guard' === $context ) {
+                    $text = sprintf(
+                        /* translators: 1: guard name, 2: event name, 3: post ID. */
+                        __( '%1$s authorized %2$s post ID #%3$s during maintenance.', 'plugiva-clientguard' ),
+                        $guard_name,
+                        $event,
+                        $target
+                    );
+                } else {
+                    $text = sprintf(
+                        /* translators: 1: guard name, 2: event name, 3: target. */
+                        __( '%1$s authorized %2$s %3$s during maintenance.', 'plugiva-clientguard' ),
                         $guard_name,
                         $event,
                         $target

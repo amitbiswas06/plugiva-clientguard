@@ -86,11 +86,16 @@ class PCGD_Admin_Plugin_Installation_Sentinel {
 		}
 
 		/*
-		 * Allow fresh plugin installation when Pro explicitly
-		 * authorizes temporary relaxation of plugin protection.
-		 * @since 1.8.0
-		 */
+		* Allow fresh plugin installation during authorized maintenance.
+		*
+		* Record the operation as an explicit maintenance bypass.
+		*
+		* @since 1.8.0
+		*/
 		if ( PCGD_Core_Plugin::is_protection_relaxed( 'pcgd_plugins' ) ) {
+
+			do_action( 'pcgd_maintenance_authorized', 'plugin_guard', 'install', $target );
+
 			return $source;
 		}
 

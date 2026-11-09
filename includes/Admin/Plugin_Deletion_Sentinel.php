@@ -99,6 +99,20 @@ class PCGD_Admin_Plugin_Deletion_Sentinel {
 			return;
 		}
 
+		/*
+		* Allow plugin uninstall during authorized maintenance.
+		*
+		* Record the operation as an explicit maintenance bypass.
+		*
+		* @since 1.8.0
+		*/
+		if ( PCGD_Core_Plugin::is_protection_relaxed( 'pcgd_plugins' ) ) {
+
+			do_action( 'pcgd_maintenance_authorized', 'plugin_guard', 'delete', plugin_basename( $plugin_file ) );
+
+			return;
+		}
+
 		$this->active      = true;
 		$this->plugin_file = plugin_basename( $plugin_file );
 
@@ -200,6 +214,20 @@ class PCGD_Admin_Plugin_Deletion_Sentinel {
 				// @since 1.7.0
 				do_action( 'pcgd_protection_bypassed', 'plugin_guard', 'delete', plugin_basename( $plugin_file ) );
 			}
+
+			return;
+		}
+
+		/*
+		* Allow plugin deletion during authorized maintenance.
+		*
+		* Record the operation as an explicit maintenance bypass.
+		*
+		* @since 1.8.0
+		*/
+		if ( PCGD_Core_Plugin::is_protection_relaxed( 'pcgd_plugins' ) ) {
+
+			do_action( 'pcgd_maintenance_authorized', 'plugin_guard', 'delete', plugin_basename( $plugin_file ) );
 
 			return;
 		}

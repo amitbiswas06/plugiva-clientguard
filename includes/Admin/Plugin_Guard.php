@@ -57,6 +57,12 @@ class PCGD_Admin_Plugin_Guard {
 			return $allcaps;
 		}
 
+		// Allow plugin operations during authorized maintenance.
+		// @since 1.8.0
+		if ( PCGD_Core_Plugin::is_protection_relaxed( 'pcgd_plugins' ) ) {
+			return $allcaps;
+		}
+
 		$settings = get_option( self::OPTION_NAME );
 
 		$lock_install = ! empty( $settings['lock_plugin_install'] );
@@ -101,6 +107,12 @@ class PCGD_Admin_Plugin_Guard {
 
 		// Never restrict network super admins.
 		if ( PCGD_Core_Plugin::should_bypass_protection( $user_id ) ) {
+			return $caps;
+		}
+
+		// Allow plugin actions during authorized maintenance.
+		// @since 1.8.0
+		if ( PCGD_Core_Plugin::is_protection_relaxed( 'pcgd_plugins' ) ) {
 			return $caps;
 		}
 
@@ -199,6 +211,28 @@ class PCGD_Admin_Plugin_Guard {
 		}
 
 		/*
+		* Allow plugin transitions during authorized maintenance.
+		*
+		* Record each authorized transition through Sentinel.
+		*
+		* @since 1.8.0
+		*/
+		if ( PCGD_Core_Plugin::is_protection_relaxed( 'pcgd_plugins' ) ) {
+
+			foreach ( $added as $plugin_file ) {
+
+				do_action( 'pcgd_maintenance_authorized', 'plugin_guard', 'activate', $plugin_file );
+			}
+
+			foreach ( $removed as $plugin_file ) {
+
+				do_action( 'pcgd_maintenance_authorized', 'plugin_guard', 'deactivate', $plugin_file );
+			}
+
+			return $new_value;
+		}
+
+		/*
 		* Preserve the last accepted state when activation or deactivation
 		* is restricted by ClientGuard.
 		*/
@@ -230,6 +264,23 @@ class PCGD_Admin_Plugin_Guard {
 	public function protect_active_plugins_delete( $option ) {
 
 		if ( 'active_plugins' !== $option ) {
+			return;
+		}
+
+		/*
+		* Allow active plugin state deletion during authorized maintenance.
+		*
+		* Record the operation as an explicit maintenance bypass.
+		*
+		* @since 1.8.0
+		*/
+		if (
+			! PCGD_Core_Plugin::should_bypass_protection()
+			&& $this->is_plugin_operation_protection_enabled()
+			&& PCGD_Core_Plugin::is_protection_relaxed( 'pcgd_plugins' )
+		) {
+			do_action( 'pcgd_maintenance_authorized', 'plugin_guard', 'delete', 'active_plugins' );
+
 			return;
 		}
 
@@ -285,22 +336,26 @@ class PCGD_Admin_Plugin_Guard {
 
 		if ( PCGD_Core_Plugin::should_bypass_protection() ) {
 
-			do_action(
-				'pcgd_protection_bypassed',
-				'plugin_guard',
-				'plugin_edit',
-				$plugin
-			);
+			do_action( 'pcgd_protection_bypassed', 'plugin_guard', 'plugin_edit', $plugin );
 
 			return;
 		}
 
-		do_action(
-			'pcgd_protection_blocked',
-			'plugin_guard',
-			'plugin_edit',
-			$plugin
-		);
+		/*
+		* Allow plugin editing during authorized maintenance.
+		*
+		* Record the operation as an explicit maintenance bypass.
+		*
+		* @since 1.8.0
+		*/
+		if ( PCGD_Core_Plugin::is_protection_relaxed( 'pcgd_plugins' ) ) {
+
+			do_action( 'pcgd_maintenance_authorized', 'plugin_guard', 'plugin_edit', $plugin );
+
+			return;
+		}
+
+		do_action( 'pcgd_protection_blocked', 'plugin_guard', 'plugin_edit', $plugin );
 
 		wp_die( esc_html__( 'Plugin editing is protected by ClientGuard.', 'plugiva-clientguard' ) );
 	}
