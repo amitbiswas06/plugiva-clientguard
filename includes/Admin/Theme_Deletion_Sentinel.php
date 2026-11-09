@@ -64,6 +64,15 @@ class PCGD_Admin_Theme_Deletion_Sentinel {
 			return;
 		}
 
+		// Allow theme deletion during authorized maintenance.
+		// @since 1.8.0
+		if ( PCGD_Core_Plugin::is_protection_relaxed( 'pcgd_themes' ) ) {
+
+			do_action( 'pcgd_maintenance_authorized', 'theme_guard', 'delete', $stylesheet );
+
+			return;
+		}
+
 		global $wp_filesystem;
 
 		$wp_filesystem = new PCGD_Theme_Filesystem_Proxy(

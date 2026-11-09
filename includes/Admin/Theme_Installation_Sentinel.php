@@ -83,6 +83,15 @@ class PCGD_Admin_Theme_Installation_Sentinel {
 			return $source;
 		}
 
+		// Allow theme installation during authorized maintenance.
+		// @since 1.8.0
+		if ( PCGD_Core_Plugin::is_protection_relaxed( 'pcgd_themes' ) ) {
+
+			do_action( 'pcgd_maintenance_authorized', 'theme_guard', 'install', $target );
+
+			return $source;
+		}
+
 		/**
 		 * Create the installation-blocked error.
 		 */

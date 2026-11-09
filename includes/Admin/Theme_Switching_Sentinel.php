@@ -64,6 +64,15 @@ class PCGD_Admin_Theme_Switching_Sentinel {
 
 			return $met_requirements;
 		}
+
+		// Allow theme switching during authorized maintenance.
+		// @since 1.8.0
+		if ( PCGD_Core_Plugin::is_protection_relaxed( 'pcgd_themes' ) ) {
+
+			do_action( 'pcgd_maintenance_authorized', 'theme_guard', 'switch', $stylesheet );
+
+			return $met_requirements;
+		}
 		
 		// Notify ClientGuard Sentinel that a protected theme switch was blocked.
 		// @since 1.7.0
@@ -108,6 +117,15 @@ class PCGD_Admin_Theme_Switching_Sentinel {
 			return $value;
 		}
 
+		// Allow active theme state updates during authorized maintenance.
+		// @since 1.8.0
+		if ( PCGD_Core_Plugin::is_protection_relaxed( 'pcgd_themes' ) ) {
+
+			do_action( 'pcgd_maintenance_authorized', 'theme_guard', 'update', $option );
+
+			return $value;
+		}
+
 		do_action( 'pcgd_protection_blocked', 'theme_guard', 'update', $option );
 
 		return $old_value;
@@ -137,6 +155,15 @@ class PCGD_Admin_Theme_Switching_Sentinel {
 			) {
 				do_action( 'pcgd_protection_bypassed', 'theme_guard', 'delete', $option );
 			}
+
+			return;
+		}
+
+		// Allow active theme option deletion during authorized maintenance.
+		// @since 1.8.0
+		if ( PCGD_Core_Plugin::is_protection_relaxed( 'pcgd_themes' ) ) {
+
+			do_action( 'pcgd_maintenance_authorized', 'theme_guard', 'delete', $option );
 
 			return;
 		}

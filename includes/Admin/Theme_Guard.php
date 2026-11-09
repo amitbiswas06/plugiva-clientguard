@@ -55,6 +55,12 @@ class PCGD_Admin_Theme_Guard {
 			return $allcaps;
 		}
 
+		// Allow theme operations during authorized maintenance.
+		// @since 1.8.0
+		if ( PCGD_Core_Plugin::is_protection_relaxed( 'pcgd_themes' ) ) {
+			return $allcaps;
+		}
+
 		$settings = get_option( self::OPTION_NAME );
 
 		$lock = ! empty( $settings['lock_theme_switch'] );
@@ -162,22 +168,21 @@ class PCGD_Admin_Theme_Guard {
 
 		if ( PCGD_Core_Plugin::should_bypass_protection() ) {
 
-			do_action(
-				'pcgd_protection_bypassed',
-				'theme_guard',
-				'theme_edit',
-				$theme
-			);
+			do_action( 'pcgd_protection_bypassed', 'theme_guard', 'theme_edit', $theme );
 
 			return;
 		}
 
-		do_action(
-			'pcgd_protection_blocked',
-			'theme_guard',
-			'theme_edit',
-			$theme
-		);
+		// Allow theme editing during authorized maintenance.
+		// @since 1.8.0
+		if ( PCGD_Core_Plugin::is_protection_relaxed( 'pcgd_themes' ) ) {
+
+			do_action( 'pcgd_maintenance_authorized', 'theme_guard', 'theme_edit', $theme );
+
+			return;
+		}
+
+		do_action( 'pcgd_protection_blocked', 'theme_guard', 'theme_edit', $theme );
 
 		wp_die( esc_html__( 'Theme editing is protected by ClientGuard.', 'plugiva-clientguard' ) );
 	}
