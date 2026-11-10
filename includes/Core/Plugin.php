@@ -34,10 +34,11 @@ class PCGD_Core_Plugin {
 		require_once PCGD_PLUGIN_PATH . 'includes/Core/Admin_Renderer.php'; // @since 1.1.0
 		require_once PCGD_PLUGIN_PATH . 'includes/Core/Settings_Events.php'; // @since 1.7.0
 		require_once PCGD_PLUGIN_PATH . 'includes/Core/Sentinel.php'; // @since 1.7.0
+		require_once PCGD_PLUGIN_PATH . 'includes/Core/Pro_Integration.php'; // @since 1.8.0
 		require_once PCGD_PLUGIN_PATH . 'includes/Core/Protected_Content_Types.php'; // @since 1.8.0
-		require_once PCGD_PLUGIN_PATH . 'includes/Admin/Settings_Renderer.php'; // @since 1.8.0
 
 		require_once PCGD_PLUGIN_PATH . 'includes/Admin/Settings.php';
+		require_once PCGD_PLUGIN_PATH . 'includes/Admin/Settings_Renderer.php'; // @since 1.8.0
 		require_once PCGD_PLUGIN_PATH . 'includes/Admin/Menu_Guard.php';
 		require_once PCGD_PLUGIN_PATH . 'includes/Admin/Theme_Guard.php';
 		require_once PCGD_PLUGIN_PATH . 'includes/Admin/Theme_Switching_Sentinel.php'; // @since 1.7.0
@@ -225,9 +226,10 @@ class PCGD_Core_Plugin {
 			return false;
 		}
 
-		// Missing Pro integration must preserve Free protection.
+		// Missing or uninitialized Pro integration must preserve Free protection.
 		if (
-			! class_exists( 'PCGD_Pro_Maintenance' )
+			! PCGD_Pro_Integration::is_available()
+			|| ! class_exists( 'PCGD_Pro_Maintenance' )
 			|| ! is_callable(
 				array(
 					'PCGD_Pro_Maintenance',

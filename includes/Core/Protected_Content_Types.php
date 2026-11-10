@@ -33,18 +33,17 @@ final class PCGD_Protected_Content_Types {
 	private static $pro_integration_active = false;
 
 	/**
-	 * Initialize the Free–Pro content-type integration.
+	 * Initialize Pro-supported content types.
 	 *
-	 * Activates the integration for the current request and registers
-	 * the requested content types.
-	 *
-	 * Invalid top-level input leaves the integration inactive.
-	 * Individual content types are validated by register_pro_types().
-	 *
-	 * @param array $post_types Content types requested by Pro.
+	 * @param array $post_types Requested post types.
 	 * @return bool Whether the integration was initialized.
 	 */
 	public static function initialize_pro_integration( $post_types ) {
+
+		if ( ! PCGD_Pro_Integration::is_available() ) {
+			return false;
+		}
+
 		if ( ! is_array( $post_types ) ) {
 			return false;
 		}

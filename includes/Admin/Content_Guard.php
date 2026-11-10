@@ -150,6 +150,12 @@ class PCGD_Admin_Content_Guard {
             return $caps;
         }
 
+        // Pro maintenance may temporarily relax Content Guard protection.
+        // @since 1.8.0
+        if ( PCGD_Core_Plugin::is_protection_relaxed( 'pcgd_content' ) ) {
+            return $caps;
+        }
+
         return array( 'do_not_allow' );
     }
 
@@ -191,6 +197,15 @@ class PCGD_Admin_Content_Guard {
             return;
         }
 
+        if ( PCGD_Core_Plugin::is_protection_relaxed( 'pcgd_content' ) ) {
+
+            // Notify ClientGuard Sentinel that the update was authorized by maintenance.
+            // @since 1.8.0
+            do_action( 'pcgd_maintenance_authorized', 'content_guard', 'update', $post_id );
+
+            return;
+        }
+
         // Notify ClientGuard Sentinel that protected content was updated
         // without the expected bypass.
         do_action( 'pcgd_protection_violation', 'content_guard', 'update', $post_id );
@@ -216,6 +231,15 @@ class PCGD_Admin_Content_Guard {
 
             // Notify ClientGuard Sentinel that protected content trashing was bypassed.
             do_action( 'pcgd_protection_bypassed', 'content_guard', 'trash', $post->ID );
+
+            return $trash;
+        }
+
+        if ( PCGD_Core_Plugin::is_protection_relaxed( 'pcgd_content' ) ) {
+
+            // Notify ClientGuard Sentinel that the trash operation was authorized by maintenance.
+            // @since 1.8.0
+            do_action( 'pcgd_maintenance_authorized', 'content_guard', 'trash', $post->ID );
 
             return $trash;
         }
@@ -247,6 +271,15 @@ class PCGD_Admin_Content_Guard {
             // Notify ClientGuard Sentinel that protected content deletion was bypassed.
             // @since 1.7.0
             do_action( 'pcgd_protection_bypassed', 'content_guard', 'delete', $post->ID );
+
+            return $check;
+        }
+
+        if ( PCGD_Core_Plugin::is_protection_relaxed( 'pcgd_content' ) ) {
+
+            // Notify ClientGuard Sentinel that deletion was authorized by maintenance.
+            // @since 1.8.0
+            do_action( 'pcgd_maintenance_authorized', 'content_guard', 'delete', $post->ID );
 
             return $check;
         }
