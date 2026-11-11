@@ -267,23 +267,6 @@ class PCGD_Admin_Plugin_Guard {
 			return;
 		}
 
-		/*
-		* Allow active plugin state deletion during authorized maintenance.
-		*
-		* Record the operation as an explicit maintenance bypass.
-		*
-		* @since 1.8.0
-		*/
-		if (
-			! PCGD_Core_Plugin::should_bypass_protection()
-			&& $this->is_plugin_operation_protection_enabled()
-			&& PCGD_Core_Plugin::is_protection_relaxed( 'pcgd_plugins' )
-		) {
-			do_action( 'pcgd_maintenance_authorized', 'plugin_guard', 'delete', 'active_plugins' );
-
-			return;
-		}
-
 		if ( ! $this->is_plugin_operations_protected() ) {
 
 			if (
@@ -298,6 +281,7 @@ class PCGD_Admin_Plugin_Guard {
 
 		do_action( 'pcgd_protection_blocked', 'plugin_guard', 'delete', 'active_plugins' );
 
+		// Protected option deletions are never relaxed during maintenance.
 		PCGD_Core_Plugin::block_protected_option_deletion( 'active_plugins' );
 	}
 

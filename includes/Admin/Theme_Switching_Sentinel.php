@@ -159,17 +159,9 @@ class PCGD_Admin_Theme_Switching_Sentinel {
 			return;
 		}
 
-		// Allow active theme option deletion during authorized maintenance.
-		// @since 1.8.0
-		if ( PCGD_Core_Plugin::is_protection_relaxed( 'pcgd_themes' ) ) {
-
-			do_action( 'pcgd_maintenance_authorized', 'theme_guard', 'delete', $option );
-
-			return;
-		}
-
 		do_action( 'pcgd_protection_blocked', 'theme_guard', 'delete', $option );
 
+		// Protected option deletions are never relaxed during maintenance.
 		PCGD_Core_Plugin::block_protected_option_deletion( $option );
 	}
 

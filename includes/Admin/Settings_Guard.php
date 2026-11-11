@@ -199,6 +199,7 @@ class PCGD_Admin_Settings_Guard {
         // @since 1.7.0
         do_action( 'pcgd_protection_blocked', 'settings_guard', 'delete', $option );
 
+        // Protected option deletions are never relaxed during maintenance.
         PCGD_Core_Plugin::block_protected_option_deletion( $option );
     }
 
@@ -451,6 +452,7 @@ class PCGD_Admin_Settings_Guard {
         // @since 1.7.0
         do_action( 'pcgd_protection_blocked', 'settings_guard', 'delete', $option );
 
+        // Protected option deletions are never relaxed during maintenance.
         PCGD_Core_Plugin::block_protected_option_deletion( $option );
     }
 

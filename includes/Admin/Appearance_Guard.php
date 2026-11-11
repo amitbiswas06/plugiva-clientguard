@@ -217,20 +217,11 @@ class PCGD_Admin_Appearance_Guard {
 			return;
 		}
 
-		// Allow sidebar widget deletion during a valid maintenance window.
-		// @since 1.8.0
-		if ( PCGD_Core_Plugin::is_protection_relaxed( 'pcgd_appearance' ) ) {
-
-			// Notify ClientGuard Sentinel that the sidebar widget deletion was authorized during maintenance.
-			do_action( 'pcgd_maintenance_authorized', 'appearance_guard', 'delete', $option );
-
-			return;
-		}
-
 		// Notify ClientGuard Sentinel that a protected sidebar widget deletion was blocked.
 		// @since 1.7.0
 		do_action( 'pcgd_protection_blocked', 'appearance_guard', 'delete', $option );
 
+		// Protected option deletions are never relaxed during maintenance.
 		PCGD_Core_Plugin::block_protected_option_deletion( $option );
 	}
 
@@ -312,20 +303,11 @@ class PCGD_Admin_Appearance_Guard {
 			return;
 		}
 
-		// Allow block widget deletion during a valid maintenance window.
-		// @since 1.8.0
-		if ( PCGD_Core_Plugin::is_protection_relaxed( 'pcgd_appearance' ) ) {
-
-			// Notify ClientGuard Sentinel that the block widget deletion was authorized during maintenance.
-			do_action( 'pcgd_maintenance_authorized', 'appearance_guard', 'delete', $option );
-
-			return;
-		}
-
 		// Notify ClientGuard Sentinel that a protected block widget deletion was blocked.
 		// @since 1.7.0
 		do_action( 'pcgd_protection_blocked', 'appearance_guard', 'delete', $option );
 
+		// Protected option deletions are never relaxed during maintenance.
 		PCGD_Core_Plugin::block_protected_option_deletion( $option );
 	}
 
@@ -462,20 +444,11 @@ class PCGD_Admin_Appearance_Guard {
 			return;
 		}
 
-		// Allow Site Identity option deletion during a valid maintenance window.
-		// @since 1.8.0
-		if ( PCGD_Core_Plugin::is_protection_relaxed( 'pcgd_appearance' ) ) {
-
-			// Notify ClientGuard Sentinel that the Site Identity option deletion was authorized during maintenance.
-			do_action( 'pcgd_maintenance_authorized', 'appearance_guard', 'delete', $option );
-
-			return;
-		}
-
 		// Notify ClientGuard Sentinel that a protected Site Identity deletion was blocked.
 		// @since 1.7.0
 		do_action( 'pcgd_protection_blocked', 'appearance_guard', 'delete', $option );
 
+		// Protected option deletions are never relaxed during maintenance.
 		PCGD_Core_Plugin::block_protected_option_deletion( $option );
 	}
 
