@@ -105,7 +105,13 @@ class PCGD_Admin_Settings_Guard {
             return;
         }
 
-        // Redirect to dashboard
+        // Allow access when Pro maintenance relaxes Settings Guard.
+        // @since 1.8.0
+        if ( PCGD_Core_Plugin::is_protection_relaxed( 'pcgd_settings' ) ) {
+            return;
+        }
+
+        // Redirect to dashboard.
         wp_safe_redirect( admin_url() );
         exit;
     }
@@ -123,12 +129,16 @@ class PCGD_Admin_Settings_Guard {
         $normalized_new_value = trim( (string) $new_value, '/' );
         $normalized_old_value = trim( (string) $old_value, '/' );
 
+        // Only process actual changes.
+        if ( $normalized_new_value === $normalized_old_value ) {
+            return $new_value;
+        }
+
         if ( ! $this->is_client_mode_protection_active() ) {
 
-            if ( 
-                $normalized_new_value !== $normalized_old_value && 
-                PCGD_Core_Plugin::is_client_mode() && 
-                PCGD_Core_Plugin::should_bypass_protection() 
+            if (
+                PCGD_Core_Plugin::is_client_mode() &&
+                PCGD_Core_Plugin::should_bypass_protection()
             ) {
                 // Notify ClientGuard Sentinel that a protected permalink option update was bypassed.
                 // @since 1.7.0
@@ -138,17 +148,21 @@ class PCGD_Admin_Settings_Guard {
             return $new_value;
         }
 
-        // Only block if an actual change is attempted.
-        if ( $normalized_new_value !== $normalized_old_value ) {
+        // Allow protected permalink updates during a valid maintenance window.
+        // @since 1.8.0
+        if ( PCGD_Core_Plugin::is_protection_relaxed( 'pcgd_settings' ) ) {
 
-            // Notify ClientGuard Sentinel that a protected permalink option update was blocked.
-            // @since 1.7.0
-            do_action( 'pcgd_protection_blocked', 'settings_guard', 'update', $option );
+            // Notify ClientGuard Sentinel that the permalink update was authorized during maintenance.
+            do_action( 'pcgd_maintenance_authorized', 'settings_guard', 'update', $option );
 
-            return $old_value;
+            return $new_value;
         }
 
-        return $new_value;
+        // Notify ClientGuard Sentinel that a protected permalink option update was blocked.
+        // @since 1.7.0
+        do_action( 'pcgd_protection_blocked', 'settings_guard', 'update', $option );
+
+        return $old_value;
     }
 
     /**
@@ -200,6 +214,12 @@ class PCGD_Admin_Settings_Guard {
             return;
         }
 
+        // Allow access during a valid maintenance window.
+        // @since 1.8.0
+        if ( PCGD_Core_Plugin::is_protection_relaxed( 'pcgd_settings' ) ) {
+            return;
+        }
+
         // Redirect to dashboard.
         wp_safe_redirect( admin_url() );
         exit;
@@ -214,6 +234,12 @@ class PCGD_Admin_Settings_Guard {
     public function block_ai_settings_page() {
 
         if ( ! $this->is_client_mode_protection_active() ) {
+            return;
+        }
+
+        // Allow access during a valid maintenance window.
+        // @since 1.8.0
+        if ( PCGD_Core_Plugin::is_protection_relaxed( 'pcgd_settings' ) ) {
             return;
         }
 
@@ -238,8 +264,12 @@ class PCGD_Admin_Settings_Guard {
      */
     public function filter_ai_runtime_enabled( $enabled ) {
 
-        // Suspend AI runtime features in Client Mode.
-        if ( $this->is_client_mode_protection_active() ) {
+        // Suspend AI runtime features in Client Mode,
+        // unless a valid maintenance window is active.
+        if (
+            $this->is_client_mode_protection_active() &&
+            ! PCGD_Core_Plugin::is_protection_relaxed( 'pcgd_settings' )
+        ) {
             return false;
         }
 

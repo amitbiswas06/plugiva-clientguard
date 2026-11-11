@@ -37,6 +37,12 @@ class PCGD_Admin_Menu_Guard {
 			return;
 		}
 
+		// Allow all admin menus during a valid maintenance window.
+		// @since 1.8.0
+		if ( PCGD_Core_Plugin::is_protection_relaxed( 'pcgd_plugins' ) ) {
+			return;
+		}
+
 		$settings = get_option( self::OPTION_NAME );
 
 		$hidden = array();
@@ -90,6 +96,12 @@ class PCGD_Admin_Menu_Guard {
 
 		// Never restrict network Super Admins (multisite only).
 		if ( PCGD_Core_Plugin::should_bypass_protection() ) {
+			return $show;
+		}
+
+		// Allow all admin menus during a valid maintenance window.
+		// @since 1.8.0
+		if ( PCGD_Core_Plugin::is_protection_relaxed( 'pcgd_plugins' ) ) {
 			return $show;
 		}
 
