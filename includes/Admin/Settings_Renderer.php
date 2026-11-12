@@ -486,12 +486,68 @@ class PCGD_Admin_Settings_Renderer {
 	 */
 	public function render_page() {
 
+		// Built-in tabs must remain available and retain their existing behavior.
+		$built_in_tabs = array(
+			'general'            => __( 'General', 'plugiva-clientguard' ),
+			'content-protection' => __( 'Content Protection', 'plugiva-clientguard' ),
+			'sentinel'           => __( 'Sentinel', 'plugiva-clientguard' ),
+		);
+
+		/**
+		 * Allow extensions to register additional settings tabs.
+		 *
+		 * Extensions should return an associative array of tab slugs and labels.
+		 *
+		 * @since 1.8.0
+		 *
+		 * @param array $tabs Registered settings tabs.
+		 */
+		$registered_tabs = apply_filters(
+			'pcgd_admin_settings_tabs',
+			$built_in_tabs
+		);
+
+		if ( ! is_array( $registered_tabs ) ) {
+			$registered_tabs = array();
+		}
+
+		// Preserve built-in tabs and accept only valid additional registrations.
+		$custom_tabs = array();
+
+		foreach ( $registered_tabs as $slug => $label ) {
+
+			if (
+				! is_string( $slug )
+				|| ! is_string( $label )
+				|| '' === trim( $label )
+			) {
+				continue;
+			}
+
+			$slug = sanitize_key( $slug );
+
+			if (
+				'' === $slug
+				|| isset( $built_in_tabs[ $slug ] )
+			) {
+				continue;
+			}
+
+			if ( isset( $custom_tabs[ $slug ] ) ) {
+				continue;
+			}
+
+			$custom_tabs[ $slug ] = $label;
+		}
+
+		$tabs = array_merge( $built_in_tabs, $custom_tabs );
+
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Tab is read-only navigation input; no state-changing operation is performed.
-		$tab = isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : 'general';
+		$tab = isset( $_GET['tab'] )
+			? sanitize_key( wp_unslash( $_GET['tab'] ) )
+			: 'general';
 
-		$allowed_tabs = array( 'general', 'content-protection', 'sentinel' );
-
-		if ( ! in_array( $tab, $allowed_tabs, true ) ) {
+		if ( ! isset( $tabs[ $tab ] ) ) {
 			$tab = 'general';
 		}
 		?>
@@ -500,40 +556,41 @@ class PCGD_Admin_Settings_Renderer {
 			<h1><?php echo esc_html__( 'Plugiva ClientGuard', 'plugiva-clientguard' ); ?></h1>
 
 			<nav class="nav-tab-wrapper">
-				<a
-					href="<?php echo esc_url( admin_url( 'options-general.php?page=plugiva-clientguard&tab=general' ) ); ?>"
-					class="nav-tab <?php echo 'general' === $tab ? 'nav-tab-active' : ''; ?>"
-				>
-					<?php esc_html_e( 'General', 'plugiva-clientguard' ); ?>
-				</a>
 
-				<a
-					href="<?php echo esc_url( admin_url( 'options-general.php?page=plugiva-clientguard&tab=content-protection' ) ); ?>"
-					class="nav-tab <?php echo 'content-protection' === $tab ? 'nav-tab-active' : ''; ?>"
-				>
-					<?php esc_html_e( 'Content Protection', 'plugiva-clientguard' ); ?>
-				</a>
+				<?php foreach ( $tabs as $slug => $label ) : ?>
+					<a
+						href="<?php echo esc_url( admin_url( 'options-general.php?page=plugiva-clientguard&tab=' . $slug ) ); ?>"
+						class="nav-tab <?php echo $slug === $tab ? 'nav-tab-active' : ''; ?>"
+					>
+						<?php echo esc_html( $label ); ?>
+					</a>
+				<?php endforeach; ?>
 
-				<a
-					href="<?php echo esc_url( admin_url( 'options-general.php?page=plugiva-clientguard&tab=sentinel' ) ); ?>"
-					class="nav-tab <?php echo 'sentinel' === $tab ? 'nav-tab-active' : ''; ?>"
-				>
-					<?php esc_html_e( 'Sentinel', 'plugiva-clientguard' ); ?>
-				</a>
 			</nav>
 
 			<?php
 			if ( 'sentinel' === $tab ) :
 				$this->render_sentinel_tab();
+
 			elseif ( 'content-protection' === $tab ) :
 				PCGD_Core_Admin_Renderer::render_section(
 					'plugiva-clientguard',
 					'pcgd_section_content'
 				);
-			else :
+
+			elseif ( 'general' === $tab ) :
 				$this->render_general_tab();
+
+			else :
+				/**
+				 * Render content for an extension-provided settings tab.
+				 *
+				 * @since 1.8.0
+				 */
+				do_action( 'pcgd_render_admin_settings_tab_' . $tab );
 			endif;
 			?>
+
 		</div>
 		<?php
 	}
