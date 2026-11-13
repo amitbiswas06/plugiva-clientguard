@@ -65,9 +65,17 @@ class PCGD_Core_Sentinel {
     }
 
 	/**
-	 * Create the Sentinel table if it does not exist.
+	 * Create or update the Sentinel table schema.
+	 *
+	 * Uses dbDelta() to create the table if it does not exist or
+	 * update its structure when new columns or indexes are introduced.
+	 *
+	 * The idempotency key and its unique index allow lifecycle events
+	 * to be recorded without creating duplicate entries for the same
+	 * site and idempotency key.
 	 *
 	 * @since 1.7.0
+	 * @since 1.8.0 Added lifecycle-event idempotency support.
 	 *
 	 * @return void
 	 */
@@ -91,7 +99,9 @@ class PCGD_Core_Sentinel {
 			target VARCHAR(255) NOT NULL,
 			details TEXT NOT NULL,
 			created_at DATETIME NOT NULL,
+            idempotency_key CHAR(64) DEFAULT NULL,
 			PRIMARY KEY  (id),
+            UNIQUE KEY blog_id_idempotency_key (blog_id, idempotency_key),
 			KEY blog_id_created_at (blog_id, created_at)
 		) $charset_collate;";
 
@@ -460,12 +470,14 @@ class PCGD_Core_Sentinel {
      * Record a Sentinel lifecycle event.
      *
      * @since 1.7.0
+     * @since 1.8.0 Added optional idempotency key support.
      *
-     * @param string $event  Lifecycle event name.
-     * @param string $target Event target.
+     * @param string      $event           Lifecycle event name.
+     * @param string      $target          Event target.
+     * @param string|null $idempotency_key Optional key for duplicate prevention.
      * @return bool True on success, false on failure.
      */
-    public function record_lifecycle_event( $event, $target = 'clientguard' ) {
+    public function record_lifecycle_event( $event, $target = 'clientguard', $idempotency_key = null ) {
 
         $event  = sanitize_key( $event );
         $target = sanitize_text_field( $target );
@@ -496,7 +508,8 @@ class PCGD_Core_Sentinel {
             'clientguard',
             $target,
             $details,
-            'pcgd_clientguard_lifecycle'
+            'pcgd_clientguard_lifecycle',
+            $idempotency_key
         );
     }
 
@@ -524,16 +537,18 @@ class PCGD_Core_Sentinel {
      * Insert a Sentinel event into the database.
      *
      * @since 1.7.0
+     * @since 1.8.0 Added lifecycle-event idempotency support.
      *
-     * @param string $category Event category.
-     * @param string $event    Event name.
-     * @param string $context  Event context.
-     * @param string $target   Event target.
-     * @param string $details  Additional event details.
-     * @param string $hook     Triggering Sentinel hook.
+     * @param string      $category       Event category.
+     * @param string      $event          Event name.
+     * @param string      $context        Event context.
+     * @param string      $target         Event target.
+     * @param string      $details        Additional event details.
+     * @param string      $hook           Triggering Sentinel hook.
+     * @param string|null $idempotency_key Optional key for duplicate prevention.
      * @return bool True on success, false on failure.
      */
-    private function insert_sentinel_event( $category, $event, $context, $target, $details, $hook ) {
+    private function insert_sentinel_event( $category, $event, $context, $target, $details, $hook, $idempotency_key = null ) {
         global $wpdb;
 
         $table_name = $this->get_table_name();
@@ -551,6 +566,19 @@ class PCGD_Core_Sentinel {
 
         if ( ! in_array( $category, array( 'config', 'operational', 'lifecycle' ), true ) ) {
             return false;
+        }
+
+        // Idempotency keys are supported only for lifecycle events.
+        if ( null !== $idempotency_key ) {
+            if (
+                'lifecycle' !== $category ||
+                ! is_string( $idempotency_key ) ||
+                '' === trim( $idempotency_key )
+            ) {
+                return false;
+            }
+
+            $idempotency_key = hash( 'sha256', $idempotency_key );
         }
 
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Checks current Sentinel table existence during database setup/maintenance.
@@ -576,15 +604,16 @@ class PCGD_Core_Sentinel {
         $inserted = $wpdb->insert(
             $table_name,
             array(
-                'blog_id'    => $blog_id,
-                'user_id'    => $user_id,
-                'category'   => $category,
-                'event'      => $event,
-                'context'    => $context,
-                'action'     => $hook,
-                'target'     => $target,
-                'details'    => $details,
-                'created_at' => current_time( 'mysql', true ),
+                'blog_id'         => $blog_id,
+                'user_id'         => $user_id,
+                'category'        => $category,
+                'event'           => $event,
+                'context'         => $context,
+                'action'          => $hook,
+                'target'          => $target,
+                'details'         => $details,
+                'created_at'      => current_time( 'mysql', true ),
+                'idempotency_key' => $idempotency_key,
             ),
             array(
                 '%d',
@@ -596,14 +625,47 @@ class PCGD_Core_Sentinel {
                 '%s',
                 '%s',
                 '%s',
+                '%s',
             )
         );
 
         if ( false === $inserted ) {
+
+            // A matching existing record means this logical event was already recorded.
+            if ( null !== $idempotency_key ) {
+
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Checks whether the lifecycle event was already recorded.
+                $existing = $wpdb->get_row(
+                    $wpdb->prepare(
+                        "SELECT category, event, context, action, target, details
+                        FROM {$table_name}
+                        WHERE blog_id = %d
+                        AND idempotency_key = %s
+                        LIMIT 1",
+                        $blog_id,
+                        $idempotency_key
+                    ),
+                    ARRAY_A
+                );
+
+                if ( ! is_array( $existing ) ) {
+                    return false;
+                }
+
+                return (
+                    $existing['category'] === $category &&
+                    $existing['event'] === $event &&
+                    $existing['context'] === $context &&
+                    $existing['action'] === $hook &&
+                    $existing['target'] === $target &&
+                    $existing['details'] === $details
+                );
+            }
+
             return false;
         }
 
-        // process cleanup when limit exceeds
+        // Process cleanup when the event limit is exceeded.
         $this->cleanup_sentinel_events( $blog_id );
 
         return true;
