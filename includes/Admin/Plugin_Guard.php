@@ -147,11 +147,12 @@ class PCGD_Admin_Plugin_Guard {
 	 * activation or deactivation is restricted by ClientGuard.
 	 *
 	 * @since 1.7.0
+	 * @since 1.8.0 added self plugin activation recovery
 	 *
 	 * @param array  $new_value New active plugins value.
 	 * @param array  $old_value Old active plugins value.
 	 * @param string $option    Option name.
-	 * @return array New value when allowed, otherwise the previous value.
+	 * @return array The accepted plugin state after applying protection rules.
 	 */
 	public function guard_active_plugins_transition( $new_value, $old_value, $option ) {
 
@@ -184,7 +185,24 @@ class PCGD_Admin_Plugin_Guard {
 		$added   = array_diff( $new_value, $old_value );
 		$removed = array_diff( $old_value, $new_value );
 
-		if ( empty( $added ) && empty( $removed ) ) {
+		/*
+		* Allow ClientGuard to reactivate itself.
+		*
+		* Other plugin transitions remain subject to normal protection.
+		*
+		* @since 1.8.0
+		*/
+		$self_plugin = plugin_basename( PCGD_PLUGIN_FILE );
+
+		$self_activation = in_array( $self_plugin, $added, true );
+
+		$protected_added = $added;
+
+		if ( $self_activation ) {
+			$protected_added = array_diff( $added, array( $self_plugin ) );
+		}
+
+		if ( empty( $protected_added ) && empty( $removed ) ) {
 			return $new_value;
 		}
 
@@ -196,14 +214,12 @@ class PCGD_Admin_Plugin_Guard {
 			foreach ( $added as $plugin_file ) {
 
 				// Notify ClientGuard Sentinel that protected plugin activation was bypassed.
-				// @since 1.7.0
 				do_action( 'pcgd_protection_bypassed', 'plugin_guard', 'activate', $plugin_file );
 			}
 
 			foreach ( $removed as $plugin_file ) {
 
 				// Notify ClientGuard Sentinel that protected plugin deactivation was bypassed.
-				// @since 1.7.0
 				do_action( 'pcgd_protection_bypassed', 'plugin_guard', 'deactivate', $plugin_file );
 			}
 
@@ -236,18 +252,33 @@ class PCGD_Admin_Plugin_Guard {
 		* Preserve the last accepted state when activation or deactivation
 		* is restricted by ClientGuard.
 		*/
-		foreach ( $added as $plugin_file ) {
+		foreach ( $protected_added as $plugin_file ) {
 
 			// Notify ClientGuard Sentinel that protected plugin activation was blocked.
-			// @since 1.7.0
 			do_action( 'pcgd_protection_blocked', 'plugin_guard', 'activate', $plugin_file );
 		}
 
 		foreach ( $removed as $plugin_file ) {
 
 			// Notify ClientGuard Sentinel that protected plugin deactivation was blocked.
-			// @since 1.7.0
 			do_action( 'pcgd_protection_blocked', 'plugin_guard', 'deactivate', $plugin_file );
+		}
+
+		/*
+		* Preserve ClientGuard's own activation while rejecting
+		* all other unauthorized plugin transitions.
+		*
+		* @since 1.8.0
+		*/
+		if ( $self_activation ) {
+
+			$safe_value = $old_value;
+
+			if ( ! in_array( $self_plugin, $safe_value, true ) ) {
+				$safe_value[] = $self_plugin;
+			}
+
+			return $safe_value;
 		}
 
 		return $old_value;
