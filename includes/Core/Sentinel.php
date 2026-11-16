@@ -50,6 +50,9 @@ class PCGD_Core_Sentinel {
 
         $loader->add_action( 'pcgd_maintenance_authorized', $this, 'record_operational_event', 10, 3 ); // @since 1.8.0
 
+        // Successful recovery activation of ClientGuard itself.
+        $loader->add_action( 'pcgd_self_reactivation_completed', $this, 'record_operational_event', 10, 3 ); // @since 1.8.0
+
         $loader->add_action( 'pcgd_protection_state_changed', $this, 'record_config_event', 10, 4 );
 
         $loader->add_action( 'pcgd_client_mode_changed', $this, 'record_config_event', 10, 4 );
@@ -174,6 +177,7 @@ class PCGD_Core_Sentinel {
             'pcgd_protection_bypassed',
             'pcgd_protection_violation',
             'pcgd_maintenance_authorized',
+            'pcgd_self_reactivation_completed',
         );
 
         if ( in_array( $hook, $operational_hooks, true ) ) {
@@ -431,6 +435,18 @@ class PCGD_Core_Sentinel {
                         $target
                     );
                 }
+                break;
+
+            case 'pcgd_self_reactivation_completed':
+                if (
+                    'plugin_guard' !== $context
+                    || 'self_reactivated' !== $event
+                    || plugin_basename( PCGD_PLUGIN_FILE ) !== $target
+                ) {
+                    return;
+                }
+
+                $text = __( 'ClientGuard Free successfully restored its active status.', 'plugiva-clientguard' );
                 break;
 
             case 'pcgd_protection_violation':

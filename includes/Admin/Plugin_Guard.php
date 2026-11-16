@@ -15,6 +15,18 @@ class PCGD_Admin_Plugin_Guard {
 	const OPTION_NAME = 'pcgd_settings';
 
 	/**
+	 * Whether ClientGuard's own activation was allowed by the recovery path.
+	 *
+	 * The flag is request-local and is consumed by the successful
+	 * activated_plugin action. It does not claim success merely because
+	 * the active_plugins option was filtered.
+	 *
+	 * @since 1.8.0
+	 * @var bool
+	 */
+	private $self_reactivation_pending = false;
+
+	/**
 	 * Register hooks.
 	 *
 	 * @param PCGD_Core_Loader $loader Loader instance.
@@ -34,6 +46,9 @@ class PCGD_Admin_Plugin_Guard {
 
 		$installation_sentinel = new PCGD_Admin_Plugin_Installation_Sentinel( $this );
 		$installation_sentinel->register( $loader );
+
+		// Record ClientGuard's own activation only after WordPress confirms it.
+		$loader->add_action( 'activated_plugin', $this, 'record_self_reactivation', 10, 2 );
 
 		// Only watcher and sentinel log for bypass on network
 		$loader->add_action( 'activated_plugin', $this, 'sentinel_network_plugin_activation', 10, 2 );
@@ -195,6 +210,10 @@ class PCGD_Admin_Plugin_Guard {
 		$self_plugin = plugin_basename( PCGD_PLUGIN_FILE );
 
 		$self_activation = in_array( $self_plugin, $added, true );
+
+		if ( $self_activation ) {
+			$this->self_reactivation_pending = true;
+		}
 
 		$protected_added = $added;
 
@@ -373,6 +392,46 @@ class PCGD_Admin_Plugin_Guard {
 		do_action( 'pcgd_protection_blocked', 'plugin_guard', 'plugin_edit', $plugin );
 
 		wp_die( esc_html__( 'Plugin editing is protected by ClientGuard.', 'plugiva-clientguard' ) );
+	}
+
+	/**
+	 * Record successful reactivation of ClientGuard itself.
+	 *
+	 * The active_plugins filter only authorizes the recovery transition.
+	 * This callback runs later, after WordPress fires activated_plugin,
+	 * so Sentinel records completion rather than an attempted activation.
+	 *
+	 * @since 1.8.0
+	 * @param string $plugin       Activated plugin basename.
+	 * @param bool   $network_wide Whether the plugin was activated network-wide.
+	 * @return void
+	 */
+	public function record_self_reactivation( $plugin, $network_wide ) {
+
+		$self_plugin = plugin_basename( PCGD_PLUGIN_FILE );
+
+		if (
+			! $this->self_reactivation_pending
+			|| $self_plugin !== $plugin
+		) {
+			return;
+		}
+
+		$this->self_reactivation_pending = false;
+
+		// Confirm the site-level activation was persisted before recording it.
+		$active_plugins = (array) get_option( 'active_plugins', array() );
+
+		if ( ! in_array( $self_plugin, $active_plugins, true ) ) {
+			return;
+		}
+
+		do_action(
+			'pcgd_self_reactivation_completed',
+			'plugin_guard',
+			'self_reactivated',
+			$self_plugin
+		);
 	}
 
 	/**
