@@ -487,18 +487,29 @@ class PCGD_Core_Sentinel {
      *
      * @since 1.7.0
      * @since 1.8.0 Added optional idempotency key support.
+     * @since 1.8.0 Added optional event timestamp support.
      *
      * @param string      $event           Lifecycle event name.
      * @param string      $target          Event target.
      * @param string|null $idempotency_key Optional key for duplicate prevention.
+     * @param int|null    $event_timestamp  Optional Unix timestamp for the event.
      * @return bool True on success, false on failure.
      */
-    public function record_lifecycle_event( $event, $target = 'clientguard', $idempotency_key = null ) {
+    public function record_lifecycle_event( 
+        $event,
+        $target = 'clientguard',
+        $idempotency_key = null,
+        $event_timestamp = null
+    ) {
 
         $event  = sanitize_key( $event );
         $target = sanitize_text_field( $target );
 
         if ( '' === $event || '' === $target ) {
+            return false;
+        }
+
+        if ( null !== $event_timestamp && ( ! is_int( $event_timestamp ) || $event_timestamp < 1 ) ) {
             return false;
         }
 
@@ -525,7 +536,8 @@ class PCGD_Core_Sentinel {
             $target,
             $details,
             'pcgd_clientguard_lifecycle',
-            $idempotency_key
+            $idempotency_key,
+            $event_timestamp
         );
     }
 
@@ -554,6 +566,7 @@ class PCGD_Core_Sentinel {
      *
      * @since 1.7.0
      * @since 1.8.0 Added lifecycle-event idempotency support.
+     * @since 1.8.0 Added optional event timestamp support.
      *
      * @param string      $category       Event category.
      * @param string      $event          Event name.
@@ -562,9 +575,19 @@ class PCGD_Core_Sentinel {
      * @param string      $details        Additional event details.
      * @param string      $hook           Triggering Sentinel hook.
      * @param string|null $idempotency_key Optional key for duplicate prevention.
+     * @param int|null    $event_timestamp  Optional Unix timestamp for the event.
      * @return bool True on success, false on failure.
      */
-    private function insert_sentinel_event( $category, $event, $context, $target, $details, $hook, $idempotency_key = null ) {
+    private function insert_sentinel_event( 
+        $category,
+        $event,
+        $context,
+        $target,
+        $details,
+        $hook,
+        $idempotency_key = null,
+        $event_timestamp = null
+    ) {
         global $wpdb;
 
         $table_name = $this->get_table_name();
@@ -595,6 +618,13 @@ class PCGD_Core_Sentinel {
             }
 
             $idempotency_key = hash( 'sha256', $idempotency_key );
+        }
+
+        if (
+            null !== $event_timestamp
+            && ( ! is_int( $event_timestamp ) || $event_timestamp < 1 )
+        ) {
+            return false;
         }
 
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Checks current Sentinel table existence during database setup/maintenance.
@@ -628,7 +658,9 @@ class PCGD_Core_Sentinel {
                 'action'          => $hook,
                 'target'          => $target,
                 'details'         => $details,
-                'created_at'      => current_time( 'mysql', true ),
+                'created_at'      => null !== $event_timestamp
+                    ? gmdate( 'Y-m-d H:i:s', $event_timestamp )
+                    : current_time( 'mysql', true ),
                 'idempotency_key' => $idempotency_key,
             ),
             array(

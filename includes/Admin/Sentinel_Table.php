@@ -72,7 +72,7 @@ class PCGD_Admin_Sentinel_Table extends WP_List_Table {
      */
     public function column_created_at( $item ) {
 
-        $timestamp = strtotime( $item->created_at );
+        $timestamp = strtotime( $item->created_at . ' UTC' );
 
         if ( ! $timestamp ) {
             return esc_html( $item->created_at );
@@ -80,9 +80,8 @@ class PCGD_Admin_Sentinel_Table extends WP_List_Table {
 
         return esc_html(
             wp_date(
-                'M d, Y \a\t H:i:s \U\T\C',
-                $timestamp,
-                new DateTimeZone( 'UTC' )
+                get_option( 'date_format' ) . ' ' . get_option( 'time_format' ),
+                $timestamp
             )
         );
     }
