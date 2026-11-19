@@ -644,12 +644,40 @@ class PCGD_Admin_Settings_Renderer {
 	 * Sentinel event table and available log management actions.
 	 *
 	 * @since 1.7.0
+	 * 
+	 * @since 1.8.0 Allow compatible extensions for Sentinel table.
 	 *
 	 * @return void
 	 */
     private function render_sentinel_tab() {
 
-        $table = new PCGD_Admin_Sentinel_Table();
+        /**
+         * Allow compatible extensions to provide an enhanced Sentinel table.
+         *
+         * The selected class must extend PCGD_Admin_Sentinel_Table so the
+         * existing Sentinel table interface remains the compatibility base.
+		 * 
+         * @param string $table_class Sentinel table class name.
+         */
+        $table_class = apply_filters(
+            'pcgd_sentinel_table_class',
+            'PCGD_Admin_Sentinel_Table'
+        );
+
+        if (
+            ! is_string( $table_class )
+            || (
+                'PCGD_Admin_Sentinel_Table' !== $table_class
+                && (
+                    ! class_exists( $table_class )
+                    || ! is_subclass_of( $table_class, 'PCGD_Admin_Sentinel_Table' )
+                )
+            )
+        ) {
+            $table_class = 'PCGD_Admin_Sentinel_Table';
+        }
+
+        $table = new $table_class();
 
         $table->prepare_items();
         ?>
