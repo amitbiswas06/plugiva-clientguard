@@ -219,6 +219,7 @@ class PCGD_Admin_Sentinel_Table extends WP_List_Table {
         return array(
             'widefat',
             'fixed',
+            'striped',
             $this->_args['plural'],
         );
     }

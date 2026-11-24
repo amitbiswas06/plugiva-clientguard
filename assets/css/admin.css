@@ -64,7 +64,7 @@ table.sentinel_events .column-details {
     width: 40%;
 }
 tr.pcgd-sentinel-client-mode {
-	background-color: #f0f6fc;
+	background-color: #e3f1ff !important;
 }
 .pcgd-sentinel-actions {
     display: flex;

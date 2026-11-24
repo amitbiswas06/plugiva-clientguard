@@ -713,6 +713,20 @@ class PCGD_Core_Sentinel {
             return false;
         }
 
+        $event_id = absint( $wpdb->insert_id );
+
+        /**
+         * Fires after a Sentinel event has been successfully recorded.
+         *
+         * Provides the database row ID of the newly recorded Sentinel event
+         * so extensions can retrieve and process the event.
+         *
+         * @since 1.8.0
+         *
+         * @param int $event_id The ID of the newly recorded Sentinel event.
+         */
+        do_action( 'pcgd_sentinel_event_recorded', $event_id );
+
         // Process cleanup when the event limit is exceeded.
         $this->cleanup_sentinel_events( $blog_id );
 
